@@ -13,6 +13,19 @@ namespace spGenerator.Controllers {
             }
 
         //Post requests
+        [HttpPost]
+        [Route("")]
+        public IHttpActionResult createRequest(SitePlanRequest req) {
+            _db.SitePlanRequests.Add(req);
+            try {
+                _db.SaveChanges();
+                return Ok();
+            }
+            catch  {
+                return InternalServerError();
+            }
+            
+        }
 
         //Get requests
         [HttpGet]

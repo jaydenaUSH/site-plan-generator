@@ -141,6 +141,8 @@
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
 	  <Compile Include="AppStart\WebApiConfig.cs" />
+	  <Compile Include="Controllers\RequestController.cs" />
+
   </ItemGroup>
   <ItemGroup>
     <EntityDeploy Include="Model1.edmx">

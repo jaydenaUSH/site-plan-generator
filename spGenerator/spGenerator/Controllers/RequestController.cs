@@ -1,6 +1,7 @@
 using spGenerator;
 
-namespace spGenerator.Controllers { 
+namespace spGenerator.Controllers {
+    [RoutePrefix("api/requests")]
     public class RequestController : ApiController {
 
         private readonly SitePlanAIPOCEntities _db;
@@ -9,6 +10,13 @@ namespace spGenerator.Controllers {
             _db = new SitePlanAIPOCEntities();
             }
 
+        //Post requests
+
+        //Get requests
+        [HttpGet]
+        [Route("{id}:int")]
+        public IHttpActionResult GetReqByID(int id) {
+        }
 
     }
 }

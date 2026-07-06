@@ -1,0 +1,10 @@
+CREATE TABLE ReferenceDocument(
+Id INT IDENTITY(1,1) PRIMARY KEY,
+FileName VARCHAR(500),
+DocumentType VARCHAR(500),
+OpenAiFileId INT,
+VectorStoreId INT, 
+UploadedBy VARCHAR(500),
+UploadedAtUtc DATETIME NOT NULL DEFAULT GETUTCDATE(),
+IsActive BIT
+)

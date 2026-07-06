@@ -1,6 +1,5 @@
 using spGenerator;
 using System.Web.Http;
-using System.Linq;
 
 namespace spGenerator.Controllers {
     [RoutePrefix("api/requests")]

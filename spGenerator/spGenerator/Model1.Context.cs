@@ -26,5 +26,8 @@ namespace spGenerator
         }
     
         public virtual DbSet<SitePlanRequest> SitePlanRequests { get; set; }
+        public virtual DbSet<ReferenceDocument> ReferenceDocuments { get; set; }
+        public virtual DbSet<SitePlanDraft> SitePlanDrafts { get; set; }
+        public virtual DbSet<SitePlanFinal> SitePlanFinals { get; set; }
     }
 }

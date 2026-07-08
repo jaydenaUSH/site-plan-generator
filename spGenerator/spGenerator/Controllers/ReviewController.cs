@@ -33,8 +33,9 @@
 
 
             return null;
-        } 
-
+        }
+        [HttpPost]
+        [Route("finalize")]
         //Save the submitted structure into the final table 
         public IHttpActionResult finalizePlan(int id)
         {

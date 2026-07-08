@@ -14,6 +14,13 @@ namespace spGenerator
     
     public partial class SitePlanRequest
     {
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
+        public SitePlanRequest()
+        {
+            this.SitePlanDrafts = new HashSet<SitePlanDraft>();
+            this.SitePlanFinals = new HashSet<SitePlanFinal>();
+        }
+    
         public int Id { get; set; }
         public string VenueName { get; set; }
         public string VenueAddress { get; set; }
@@ -29,5 +36,10 @@ namespace spGenerator
         public string AdditionalNotes { get; set; }
         public string RoomBlueprintFilePath { get; set; }
         public Nullable<System.DateTime> CreatedAtUtc { get; set; }
+    
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<SitePlanDraft> SitePlanDrafts { get; set; }
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<SitePlanFinal> SitePlanFinals { get; set; }
     }
 }

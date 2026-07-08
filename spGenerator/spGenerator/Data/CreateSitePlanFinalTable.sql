@@ -1,0 +1,18 @@
+USE SitePlanAIPOC
+GO
+CREATE TABLE SitePlanFinal(
+Id INT IDENTITY(1,1) PRIMARY KEY,
+SitePlanRequestId INT NOT NULL,
+SiteOverview NVARCHAR(MAX),
+RecommendedLayout NVARCHAR(MAX),
+VolunteerFlow NVARCHAR(MAX),
+SupplyFlow NVARCHAR(MAX),
+Timeline NVARCHAR(MAX),
+Risks NVARCHAR(MAX),
+PMReviewChecklist NVARCHAR(MAX),
+Reviewer VARCHAR(500) NOT NULL,
+AdditionalNotes NVARCHAR(MAX),
+ApprovedAt DATETIME DEFAULT GETUTCDATE(),
+FOREIGN KEY (SitePlanRequestId) REFERENCES SitePlanRequest(Id)
+)
+GO

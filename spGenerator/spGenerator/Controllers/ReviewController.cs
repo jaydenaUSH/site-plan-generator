@@ -4,7 +4,7 @@
 
     namespace spGenerator.Controllers
     {
-        [RoutePrefix("/api/review")]
+        [RoutePrefix("api/review")]
         public class ReviewController : ApiController
         {
             private readonly SitePlanAIPOCEntities _db;

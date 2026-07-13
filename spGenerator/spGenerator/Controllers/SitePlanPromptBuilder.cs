@@ -7,6 +7,11 @@ using System;
 using System.Threading.Tasks;
 using OpenAI;
 using OpenAI.Responses;
+using System.Runtime.InteropServices;
+using OpenAI.Images;
+using System.Web.Script.Services;
+using System.IO;
+using Newtonsoft.Json.Linq;
 namespace spGenerator.Controllers{
     [RoutePrefix("api/prompt")]
 
@@ -20,46 +25,108 @@ namespace spGenerator.Controllers{
         //Generate Prompt
         [HttpPost]
         [Route("create")]
-        public string GeneratePrompt(SitePlanRequest req)
+        public string GeneratePrompt(SitePlanRequest req, SitePlanDraft draft, bool image)
         {
             var prompt = new StringBuilder();
-            prompt.Append("Can you generate a site plan that plans how to setup a venue. The details for this venue are provided in a JSON structure pasted at the end of the message.\n");
-            prompt.Append("\nPlease use the context from [VECTORDB] holding past site plans as a basis to understand the logic behind making site plans so " +
-                            "you can generate a new site plan for this sepcific venue given the details.");
-            prompt.Append("The response must include sections detailing the Site Overview, " +
-                            "Recommmended Layout, Volunteer Flow, Supply Flow, Timeline, Risks, PM Review Checklist in the form of JSON plus a visualization as a pdf of the site plan.\n\n");
-            prompt.Append(JsonConvert.SerializeObject(req));
+            if (req==null)
+            {
+                prompt.Append("I have a blueprint for setting up a venue for assembling prepackaged meals that I need to edit."); ;
+
+            }
+            else
+            {
+                prompt.Append("I need help planning out the blueprint for setting up a venue for assembling prepackaged meals."); ;
+
+            }
+            prompt.Append("Notes to consider: assembly line tables are 6 or 8 ft long by 2.5 ft wide. If you consider the setup as a grid, the standard setup has a 5 ft gap between rows and 10 between columns.\n");
+            prompt.Append("The size of the document generated must scale the dimensions of the site. Attached below is a json object with information and notes about the site to consider while creating the venue." +
+                " Notes to consider: assembly line tables are 6 or 8 ft long by 2.5 ft wide. If you consider the setup as a grid, the standard setup has a 5 ft gap between rows and 10 between columns. " +
+                "The generated image should be a PDF. Furthermore, the size of the document generated must scale the dimensions of the site. Below is the JSON object with information to make the blueprint\n");
+            if (req != null) {
+                prompt.Append(JsonConvert.SerializeObject(req));
+            }
+            else
+            {
+                prompt.Append(draft);
+            }
+            if (!image)
+            {
+                prompt.Append("I already asked the image generator for the above prompt and it already made the image. " +
+                    "I just wanted text context and considerations for the blueprint. The response must be structured based on the give format\n");
+            }
 
 
             return prompt.ToString();
         }
 
         [HttpPost]
-        [Route("askAI")]
-        public async  Task<System.ClientModel.ClientResult> askAI(SitePlanRequest req)
+        [Route("makeInitialPlan")]
+        public async  Task<IHttpActionResult> askAI(SitePlanRequest req)
         {
-            var instructions = GeneratePrompt(req);
+#pragma warning disable OPENAI001
+            CreateResponseOptions format = new CreateResponseOptions()
+            {
+                Model = "gpt-5.1",
+                Instructions = GeneratePrompt(req, null, false),
+                TextOptions = new ResponseTextOptions
+                {
+                    TextFormat = ResponseTextFormat.CreateJsonSchemaFormat(
+                    jsonSchemaFormatName: "site_plan",
+                    jsonSchema: BinaryData.FromString(@"{
+                    ""type"": ""object"",
+                    ""properties"": {
+                        ""SiteOverview"":      { ""type"": ""string"" },
+                        ""RecommendedLayout"": { ""type"": ""string"" },
+                        ""VolunteerFlow"":     { ""type"": ""string"" },
+                        ""SupplyFlow"":        { ""type"": ""string"" },
+                        ""Timeline"":          { ""type"": ""string"" },
+                        ""Risks"":             { ""type"": ""string"" },
+                        ""PMReviewChecklist"": { ""type"": ""string"" }
+                },
+                ""required"": [""SiteOverview"",""RecommendedLayout"",""VolunteerFlow"",""SupplyFlow"",""Timeline"",""Risks"",""PMReviewChecklist""],
+                ""additionalProperties"": false
+            }"),
+            jsonSchemaIsStrict: true)
 
-            //Code to make AI API instance and write request
+                }
+            };
+            format.InputItems.Add(ResponseItem.CreateUserMessageItem(GeneratePrompt(req, null, false)));
+
+            var vectorContext = new OpenAI.Images.ImageGenerationOptions();
+
+            //Make AI API instance 
             var client = new OpenAIClient(
                         Environment.GetEnvironmentVariable("OPENAI_API_KEY")
                     );
-
-            #pragma warning disable OPENAI001
+            var imageClient = client.GetImageClient("gpt-image-1");
             var responseClient = client.GetResponsesClient();
 
-            var answer = await responseClient.CreateResponseAsync(model: "gpt-5.5", userInputText: instructions);
-            // answer.output[x].content[x].text   (Access text from api call)
-           
-            //Convert answer to format SQL needs if required and add and save to db
-           
-            return answer;
+            var answer = await responseClient.CreateResponseAsync( format);
+            GeneratedImage image = await imageClient.GenerateImageAsync(prompt: GeneratePrompt(req, null, true));
+            //SitePlanRequestId, CreatedAt, Reviewer, finalVersion
+
+            string directory = AppDomain.CurrentDomain.BaseDirectory;
+            string fileName = $"blueprint_{DateTime.UtcNow:yyyyMMddHHmmss}.png";
+            // turn image.ImageBytes 2 array and save the bytes as a file;
+            byte[] imageBytes = image.ImageBytes.ToArray();
+            System.IO.File.WriteAllBytes(Path.Combine(directory, fileName), imageBytes);
+
+
+
+            var txt = answer.Value.GetOutputText();
+            SitePlanDraft draft = JsonConvert.DeserializeObject<SitePlanDraft>(txt);
+            draft.SitePlanRequestId = req.Id;
+            draft.Reviewer = "Placeholder Name";
+            draft.CreatedAt = DateTime.UtcNow;
+            _db.SitePlanDrafts.Add(draft);
+
 
 
             //Save draft to sql
             _db.SaveChanges();
             //return draft
-            return null;
+            return Ok("SitePlanDraft table updated, and image generated in root project folder");
+
 
         }
 

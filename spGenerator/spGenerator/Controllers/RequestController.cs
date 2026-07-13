@@ -1,42 +1,32 @@
 using spGenerator;
+using System.Threading.Tasks;
 using System.Web.Http;
 
 namespace spGenerator.Controllers {
     [RoutePrefix("api/requests")]
     public class RequestController : ApiController {
 
-        private readonly SitePlanAIPOCEntities _db;
+        private readonly ReqServices _services;
         public RequestController()
             {
-            _db = new SitePlanAIPOCEntities();
+            _services = new ReqServices();
             }
 
         //Post requests
         [HttpPost]
         [Route("")]
-        public IHttpActionResult createRequest(SitePlanRequest req) {
-            _db.SitePlanRequests.Add(req);
-            try {
-                _db.SaveChanges();
-                return Ok();
-            }
-            catch  {
-                return InternalServerError();
-            }
-            
+        public async Task<IHttpActionResult> createRequest(SitePlanRequest req) {
+            string res = await _services.createReq(req);
+            return Ok(res);
+           
         }
 
         //Get requests
         [HttpGet]
         [Route("{id:int}")]
-        public IHttpActionResult GetReqByID(int id) {
-            var row = _db.SitePlanRequests.Find(id);
-            if (row != null) {
-                return Ok(row);
-            } else
-            {
-                return NotFound();
-            }
+        public async Task<IHttpActionResult> GetReqByID(int id) {
+            string res = await _services.getReq(id);
+            return Ok(res);
 
         }
 

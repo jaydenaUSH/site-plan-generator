@@ -10,12 +10,12 @@
             private readonly SitePlanAIPOCEntities _db;
             public ReviewController()
             {
-                _db = new SitePlanAIPOCEntities(); // Replace  SitePlanAIPOCEntities to SitePlanDraft (placeholder for now)
+                _db = new SitePlanAIPOCEntities();
         }
             [HttpGet]
             [Route("{id:int}/draft")]
             public IHttpActionResult getSitePlanDraft(int id) {
-            var row = _db.SitePlanRequests.Find(id); // Replace SitePlanRequests to SitePlanDraft (placeholder for now) 
+            var row = _db.SitePlanDrafts.Find(id);  
             if(row!= null) {
                 return Ok(row);
             }
@@ -27,9 +27,9 @@
         //edit everything 
         [HttpPut]
         [Route("{id:int}/draft/edit")]
-        public IHttpActionResult editDraft(int id, SitePlanRequest req) //Replace all instances of SitePlanRequest to SitePlanDraft
+        public IHttpActionResult editDraft(int id, string edits) 
         {
-            var ogVals = _db.SitePlanRequests.Find(id);
+            
 
 
             return null;
@@ -40,8 +40,21 @@
         public IHttpActionResult finalizePlan(int id)
         {
             try{
-                var row = _db.SitePlanRequests.Find(id); // Replace SitePlanRequests to SitePlanDraft (placeholder for now) 
-                _db.SitePlanRequests.Add(row);// Replace SitePlanRequests to SitePlanFinal (placeholder for now) for all below lines
+                var row = _db.SitePlanDrafts.Find(id);
+                SitePlanFinal finale = new SitePlanFinal
+                {
+                    SitePlanRequestId = row.Id,
+                    SiteOverview = row.SiteOverview,
+                    RecommendedLayout = row.RecommendedLayout,
+                    VolunteerFlow = row.VolunteerFlow,
+                    SupplyFlow = row.SupplyFlow,
+                    Timeline = row.Timeline,
+                    Risks = row.Risks,
+                    PMReviewChecklist =row.PMReviewChecklist,
+                    Reviewer = row.Reviewer,
+                    AdditionalNotes = row.AdditionalNotes
+                };
+                _db.SitePlanFinals.Add(finale);
                 _db.SaveChanges();
 
 

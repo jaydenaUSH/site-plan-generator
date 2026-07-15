@@ -23,17 +23,10 @@ namespace spGenerator
                 return "Error adding user";
             }
         }
-        public async Task<string> getReq(int id)
+        public async Task<dynamic> getReq(int id)
         {
             var row = _db.SitePlanRequests.Find(id);
-            if (row != null)
-            {
-                return "Request successfully retrieved";
-            }
-            else
-            {
-                return "Request not found";
-            }
+            return row;
         }
     }
 }

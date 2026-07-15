@@ -25,8 +25,14 @@ namespace spGenerator.Controllers {
         [HttpGet]
         [Route("{id:int}")]
         public async Task<IHttpActionResult> GetReqByID(int id) {
-            string res = await _services.getReq(id);
-            return Ok(res);
+                var res = await _services.getReq(id);
+            if (res == null)
+            {
+                return NotFound();
+            }else  {
+                return Ok(res); 
+            }
+            return Ok(res.row);
 
         }
 

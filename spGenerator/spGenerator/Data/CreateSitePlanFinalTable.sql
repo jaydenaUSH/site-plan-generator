@@ -1,5 +1,4 @@
-USE SitePlanAIPOC
-GO
+
 CREATE TABLE SitePlanFinal(
 Id INT IDENTITY(1,1) PRIMARY KEY,
 SitePlanRequestId INT NOT NULL,

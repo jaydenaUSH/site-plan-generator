@@ -17,7 +17,7 @@ namespace spGenerator
         {
             _db = new SitePlanAIPOCEntities();
         }
-        public string GeneratePrompt(SitePlanRequest req, SitePlanDraft draft, bool image)
+        public string GeneratePrompt(SitePlanRequest req, SitePlanDraft draft, bool image, string edits)
         {
             var prompt = new StringBuilder();
             if (req == null)
@@ -40,7 +40,11 @@ namespace spGenerator
             }
             else
             {
-                prompt.Append(JsonConvert.SerializeObject(draft));
+                prompt.Append(JsonConvert.SerializeObject(draft, new JsonSerializerSettings
+{
+                    ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+}));
+                prompt.Append("\n I want to make the following edits: "+ edits);
             }
             if (!image)
             {
@@ -58,7 +62,7 @@ namespace spGenerator
             CreateResponseOptions format = new CreateResponseOptions()
             {
                 Model = "gpt-5.1",
-                Instructions = GeneratePrompt(req, null, false),
+                Instructions = GeneratePrompt(req, null, false, ""),
                 TextOptions = new ResponseTextOptions
                 {
                     TextFormat = ResponseTextFormat.CreateJsonSchemaFormat(
@@ -81,7 +85,7 @@ namespace spGenerator
 
                 }
             };
-            format.InputItems.Add(ResponseItem.CreateUserMessageItem(GeneratePrompt(req, null, false)));
+            format.InputItems.Add(ResponseItem.CreateUserMessageItem(GeneratePrompt(req, null, false, "")));
 
             var vectorContext = new OpenAI.Images.ImageGenerationOptions();
 
@@ -93,7 +97,7 @@ namespace spGenerator
             var responseClient = client.GetResponsesClient();
 
             var answer = await responseClient.CreateResponseAsync(format);
-            GeneratedImage image = await imageClient.GenerateImageAsync(prompt: GeneratePrompt(req, null, true));
+            GeneratedImage image = await imageClient.GenerateImageAsync(prompt: GeneratePrompt(req, null, true, ""));
             //SitePlanRequestId, CreatedAt, Reviewer, finalVersion
 
             string directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints");
@@ -106,7 +110,8 @@ namespace spGenerator
 
 
             var txt = answer.Value.GetOutputText();
-            SitePlanDraft draft = JsonConvert.DeserializeObject<SitePlanDraft>(txt);
+            SitePlanDraft draft = JsonConvert.DeserializeObject<SitePlanDraft>(txt);    
+            draft.SiteOverview = Path.Combine(directory, fileName);
             draft.SitePlanRequestId = req.Id;
             draft.Reviewer = "Placeholder Name";
             draft.CreatedAt = DateTime.UtcNow;

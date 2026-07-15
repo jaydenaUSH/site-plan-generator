@@ -33,20 +33,22 @@ namespace spGenerator
                 return "Error finding draft";
             }
         }
-        public async Task<string> editDraft(int id){
-            var row = _db.SitePlanDrafts.Find(id);
-            if (row != null)
+        public async Task<dynamic> editDraft(int id, string edits)
+        {
+            try
             {
-#               pragma warning disable OPENAI001
-                CreateResponseOptions format = new CreateResponseOptions()
+                var row = _db.SitePlanDrafts.Find(id);
+                if (row != null)
                 {
-                    Model = "gpt-5.1",
-                    Instructions = _services.GeneratePrompt(null, row, false),
-                    TextOptions = new ResponseTextOptions
+#pragma warning disable OPENAI001
+                    CreateResponseOptions format = new CreateResponseOptions()
                     {
-                        TextFormat = ResponseTextFormat.CreateJsonSchemaFormat(
-                        jsonSchemaFormatName: "site_plan",
-                        jsonSchema: BinaryData.FromString(@"{
+                        Model = "gpt-5.1",
+                        TextOptions = new ResponseTextOptions
+                        {
+                            TextFormat = ResponseTextFormat.CreateJsonSchemaFormat(
+                            jsonSchemaFormatName: "site_plan",
+                            jsonSchema: BinaryData.FromString(@"{
                     ""type"": ""object"",
                     ""properties"": {
                         ""SiteOverview"":      { ""type"": ""string"" },
@@ -60,45 +62,47 @@ namespace spGenerator
                 ""required"": [""SiteOverview"",""RecommendedLayout"",""VolunteerFlow"",""SupplyFlow"",""Timeline"",""Risks"",""PMReviewChecklist""],
                 ""additionalProperties"": false
             }"),
-                jsonSchemaIsStrict: true)
+                    jsonSchemaIsStrict: true)
 
-                    }
-                };
-        format.InputItems.Add(ResponseItem.CreateUserMessageItem(_services.GeneratePrompt(null, row, false)));
-                var client = new OpenAIClient(
-                        Environment.GetEnvironmentVariable("OPENAI_API_KEY")
-                    );
-        var imageClient = client.GetImageClient("gpt-image-1");
-        var responseClient = client.GetResponsesClient();
+                        }
+                    };
+                    format.InputItems.Add(ResponseItem.CreateUserMessageItem(_services.GeneratePrompt(null, row, false, edits)));
+                    var client = new OpenAIClient(
+                            Environment.GetEnvironmentVariable("OPENAI_API_KEY")
+                        );
+                    var imageClient = client.GetImageClient("gpt-image-1");
+                    var responseClient = client.GetResponsesClient();
 
-        var answer = await responseClient.CreateResponseAsync(format);
-        GeneratedImage image = await imageClient.GenerateImageAsync(prompt: _services.GeneratePrompt(null, row, true));
-        string directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints");
+                    var answer = await responseClient.CreateResponseAsync(format);
+                    string editPrompt = "I have a blueprint already drafted that I want to make the following edits to (please be specific about changing what I ask and not other things unless associated " + edits;
+                    GeneratedImage image = await imageClient.GenerateImageEditAsync(prompt: editPrompt, imageFilePath: Path.Combine(AppDomain.CurrentDomain.BaseDirectory, row.SiteOverview));
+                    string directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints");
 
-        string fileName = $"blueprint_{DateTime.UtcNow:yyyyMMddHHmmss}.png";
-        // turn image.ImageBytes 2 array and save the bytes as a file;
-        byte[] imageBytes = image.ImageBytes.ToArray();
-        System.IO.File.WriteAllBytes(Path.Combine(directory, fileName), imageBytes);
-
-
-
-        var txt = answer.Value.GetOutputText();
-        SitePlanDraft draft = JsonConvert.DeserializeObject<SitePlanDraft>(txt);
-        draft.SitePlanRequestId = row.SitePlanRequestId;
-        draft.Reviewer = "Placeholder Name";
-        draft.CreatedAt = DateTime.UtcNow;
-        _db.SitePlanDrafts.Add(draft);
+                    string fileName = $"blueprint_{DateTime.UtcNow:yyyyMMddHHmmss}.png";
+                    // turn image.ImageBytes 2 array and save the bytes as a file;
+                    byte[] imageBytes = image.ImageBytes.ToArray();
+                    System.IO.File.WriteAllBytes(Path.Combine(directory, fileName), imageBytes);
 
 
 
-        //Save draft to sql
-        _db.SaveChanges();
-                return "Successful edit";
-    }
-            else
-            {
-                return "Edit was unsuccessful";
-}
+                    var txt = answer.Value.GetOutputText();
+                    SitePlanDraft draft = JsonConvert.DeserializeObject<SitePlanDraft>(txt);
+                    draft.SiteOverview = Path.Combine("blueprints", fileName);
+                    draft.SitePlanRequestId = row.SitePlanRequestId;
+                    draft.Reviewer = "Placeholder Name";
+                    draft.CreatedAt = DateTime.UtcNow;
+                    _db.SitePlanDrafts.Add(draft);
+
+
+
+                    //Save draft to sql
+                    _db.SaveChanges();
+                    return draft;
+
+                }
+                return "Row Not Found";
+            }
+            catch (Exception ex) { return ex; }
         }
         public string finalizeDraft(int id)
         {
@@ -122,6 +126,8 @@ namespace spGenerator
                 _db.SaveChanges();
 
                 row.finalVersion = finale.Id;
+                _db.SaveChanges();
+
 
                 return "Draft successfully finalized";
                 //Save reviewer, and timestamp

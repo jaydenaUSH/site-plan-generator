@@ -27,10 +27,10 @@ namespace spGenerator.Controllers
         //edit everything 
         [HttpPut]
         [Route("{id:int}/draft/edit")]
-        public async Task<IHttpActionResult> editDraft(int id)
+        public async Task<IHttpActionResult> editDraft(int id, [FromBody]string edits)
         {
 
-            var res = await _services.editDraft(id);
+            var res = await _services.editDraft(id, edits);
             return Ok(res);
         }
         [HttpPost]

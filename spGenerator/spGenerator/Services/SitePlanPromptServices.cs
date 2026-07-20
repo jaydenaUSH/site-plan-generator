@@ -37,7 +37,7 @@ namespace spGenerator
 
             }
             prompt.Append("Notes to consider: assembly line tables are 6 or 8 ft long by 2.5 ft wide. If you consider the setup as a grid, the standard setup has a 5 ft gap between rows and 10 between columns.\n");
-            prompt.Append("Here are some images showing a template fro amking blueprints and past crated blueprints for context as you make the new ones", context);
+            prompt.Append("Here are some images showing a template for making blueprints and past crated blueprints for context as you make the new ones" + context);
             prompt.Append("The size of the document generated must scale the dimensions of the site. Attached below is a json object with information and notes about the site to consider while creating the venue." +
                 " Notes to consider: assembly line tables are 6 or 8 ft long by 2.5 ft wide. If you consider the setup as a grid, the standard setup has a 5 ft gap between rows and 10 between columns. " +
                 "The generated image should be a PDF. Furthermore, the size of the document generated must scale the dimensions of the site. Below is the JSON object with information to make the blueprint\n");
@@ -68,7 +68,7 @@ namespace spGenerator
 #pragma warning disable OPENAI001
             //Prepare context from folder
             var contextImages = new List<ResponseContentPart>();
-            var folder = ;
+            string folder = "path";
             var files = Directory.GetFiles(folder);
             foreach (string file in files)
             {

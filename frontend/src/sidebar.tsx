@@ -6,7 +6,7 @@ function Sidebar() {
                 <h3>US Hunger</h3>
             </div>
             <div className="py-10 flex-col gap-12">
-                <Link to='/Past>'>
+                <Link to='/Past'>
                     <p>Past</p>
                 </Link>
                 <p>SidebarItem</p>

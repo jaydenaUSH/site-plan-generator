@@ -22,12 +22,16 @@ namespace spGenerator.Controllers
         public async Task<IHttpActionResult> getSitePlanDraft(int id)
         {
             var res = _services.getDraft(id);
-            return Ok(res);
+            if (res == null) { return NotFound(); }
+            else
+            {
+                return Ok(res);
+            }
         }
         //edit everything 
         [HttpPut]
         [Route("{id:int}/draft/edit")]
-        public async Task<IHttpActionResult> editDraft(int id, [FromBody]string edits)
+        public async Task<IHttpActionResult> editDraft(int id, [FromBody] string edits)
         {
 
             var res = await _services.editDraft(id, edits);

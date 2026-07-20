@@ -15,23 +15,19 @@ namespace spGenerator
         private readonly SitePlanAIPOCEntities _db;
         private readonly SitePlanPromptServices _services;
 
+
         public ReviewServices()
         {
             _db = new SitePlanAIPOCEntities();
             _services = new SitePlanPromptServices();
+            _db.Configuration.ProxyCreationEnabled = false;
+
         }
 
-        public string getDraft(int id)
+        public dynamic getDraft(int id)
         {
             var row = _db.SitePlanDrafts.Find(id);
-            if (row != null)
-            {
-                return "Draft successfully retrieved";
-            }
-            else
-            {
-                return "Error finding draft";
-            }
+            return row;
         }
         public async Task<dynamic> editDraft(int id, string edits)
         {

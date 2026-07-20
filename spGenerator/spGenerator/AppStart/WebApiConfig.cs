@@ -11,14 +11,10 @@ namespace spGenerator
     Newtonsoft.Json.ReferenceLoopHandling.Ignore;
             // Enable CORS
             var cors = new System.Web.Http.Cors.EnableCorsAttribute(
-                origins: "http://localhost:3000",
+                origins: "*",
                 headers: "*",
                 methods: "*");
-            config.Routes.MapHttpRoute(
-                name: "DefaultApi",
-                routeTemplate: "api/{controller}/{id}",
-                defaults: new { id = System.Web.Http.RouteParameter.Optional }
-            );
+            config.EnableCors(cors);
 
         }
     }

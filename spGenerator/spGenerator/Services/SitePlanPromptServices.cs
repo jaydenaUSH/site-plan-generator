@@ -1,9 +1,12 @@
 ﻿
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OpenAI;
 using OpenAI.Images;
 using OpenAI.Responses;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,7 +20,10 @@ namespace spGenerator
         {
             _db = new SitePlanAIPOCEntities();
         }
-        public string GeneratePrompt(SitePlanRequest req, SitePlanDraft draft, bool image, string edits)
+
+
+
+        public string GeneratePrompt(SitePlanRequest req, SitePlanDraft draft, bool image, string edits, string context)
         {
             var prompt = new StringBuilder();
             if (req == null)
@@ -31,6 +37,7 @@ namespace spGenerator
 
             }
             prompt.Append("Notes to consider: assembly line tables are 6 or 8 ft long by 2.5 ft wide. If you consider the setup as a grid, the standard setup has a 5 ft gap between rows and 10 between columns.\n");
+            prompt.Append("Here are some images showing a template fro amking blueprints and past crated blueprints for context as you make the new ones", context);
             prompt.Append("The size of the document generated must scale the dimensions of the site. Attached below is a json object with information and notes about the site to consider while creating the venue." +
                 " Notes to consider: assembly line tables are 6 or 8 ft long by 2.5 ft wide. If you consider the setup as a grid, the standard setup has a 5 ft gap between rows and 10 between columns. " +
                 "The generated image should be a PDF. Furthermore, the size of the document generated must scale the dimensions of the site. Below is the JSON object with information to make the blueprint\n");
@@ -41,10 +48,10 @@ namespace spGenerator
             else
             {
                 prompt.Append(JsonConvert.SerializeObject(draft, new JsonSerializerSettings
-{
+                {
                     ReferenceLoopHandling = ReferenceLoopHandling.Ignore
-}));
-                prompt.Append("\n I want to make the following edits: "+ edits);
+                }));
+                prompt.Append("\n I want to make the following edits: " + edits);
             }
             if (!image)
             {
@@ -58,11 +65,24 @@ namespace spGenerator
 
         public async Task<string> askAI(SitePlanRequest req)
         {
-            #pragma warning disable OPENAI001
+#pragma warning disable OPENAI001
+            //Prepare context from folder
+            var contextImages = new List<ResponseContentPart>();
+            var folder = ;
+            var files = Directory.GetFiles(folder);
+            foreach (string file in files)
+            {
+                byte[] imgBytes = File.ReadAllBytes(file);
+
+                contextImages.Add(ResponseContentPart.CreateInputImagePart(BinaryData.FromBytes(imgBytes, "image/png"),
+        imageDetailLevel: ResponseImageDetailLevel.Low));
+
+            }
+            // Create the format and options for Responses API call
             CreateResponseOptions format = new CreateResponseOptions()
             {
                 Model = "gpt-5.1",
-                Instructions = GeneratePrompt(req, null, false, ""),
+                Instructions = GeneratePrompt(req, null, false, "", ""),
                 TextOptions = new ResponseTextOptions
                 {
                     TextFormat = ResponseTextFormat.CreateJsonSchemaFormat(
@@ -76,7 +96,8 @@ namespace spGenerator
                         ""SupplyFlow"":        { ""type"": ""string"" },
                         ""Timeline"":          { ""type"": ""string"" },
                         ""Risks"":             { ""type"": ""string"" },
-                        ""PMReviewChecklist"": { ""type"": ""string"" }
+                        ""PMReviewChecklist"": { ""type"": ""string"" },
+                        ""ImageInstruction"" : {""type"":""string""}
                 },
                 ""required"": [""SiteOverview"",""RecommendedLayout"",""VolunteerFlow"",""SupplyFlow"",""Timeline"",""Risks"",""PMReviewChecklist""],
                 ""additionalProperties"": false
@@ -85,9 +106,9 @@ namespace spGenerator
 
                 }
             };
-            format.InputItems.Add(ResponseItem.CreateUserMessageItem(GeneratePrompt(req, null, false, "")));
+            format.InputItems.Add(ResponseItem.CreateUserMessageItem(GeneratePrompt(req, null, false, "", "")));
+            format.InputItems.Add(ResponseItem.CreateUserMessageItem(contextImages));
 
-            var vectorContext = new OpenAI.Images.ImageGenerationOptions();
 
             //Make AI API instance 
             var client = new OpenAIClient(
@@ -97,8 +118,11 @@ namespace spGenerator
             var responseClient = client.GetResponsesClient();
 
             var answer = await responseClient.CreateResponseAsync(format);
-            GeneratedImage image = await imageClient.GenerateImageAsync(prompt: GeneratePrompt(req, null, true, ""));
-            //SitePlanRequestId, CreatedAt, Reviewer, finalVersion
+            var txt = answer.Value.GetOutputText();
+            //Use result from the Responses API to input into images API
+
+            var imageInstructions = (string)JObject.Parse(txt)["ImageInstruction"];
+            GeneratedImage image = await imageClient.GenerateImageAsync(prompt: GeneratePrompt(req, null, true, "", imageInstructions));
 
             string directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints");
 
@@ -108,9 +132,7 @@ namespace spGenerator
             System.IO.File.WriteAllBytes(Path.Combine(directory, fileName), imageBytes);
 
 
-
-            var txt = answer.Value.GetOutputText();
-            SitePlanDraft draft = JsonConvert.DeserializeObject<SitePlanDraft>(txt);    
+            SitePlanDraft draft = JsonConvert.DeserializeObject<SitePlanDraft>(txt);
             draft.SiteOverview = Path.Combine(directory, fileName);
             draft.SitePlanRequestId = req.Id;
             draft.Reviewer = "Placeholder Name";

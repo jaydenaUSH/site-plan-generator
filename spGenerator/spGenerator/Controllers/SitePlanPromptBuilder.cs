@@ -26,7 +26,7 @@ namespace spGenerator.Controllers{
        
 
         [HttpPost]
-        [Route("makeInitialPlan")]
+        [Route("")]
         public async Task<IHttpActionResult> askAI(SitePlanRequest req)
         {
             var results = await _services.askAI(req);

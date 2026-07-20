@@ -66,7 +66,7 @@ namespace spGenerator
 
                         }
                     };
-                    format.InputItems.Add(ResponseItem.CreateUserMessageItem(_services.GeneratePrompt(null, row, false, edits)));
+                    format.InputItems.Add(ResponseItem.CreateUserMessageItem(_services.GeneratePrompt(null, row, false, edits, "")));
                     var client = new OpenAIClient(
                             Environment.GetEnvironmentVariable("OPENAI_API_KEY")
                         );
@@ -132,11 +132,11 @@ namespace spGenerator
                 return "Draft successfully finalized";
                 //Save reviewer, and timestamp
             }
-            catch 
+            catch
             {
                 return "Draft could not be finalized";
             }
         }
     }
-        
-    }
+
+}

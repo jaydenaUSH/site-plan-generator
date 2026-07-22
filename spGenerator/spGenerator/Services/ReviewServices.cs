@@ -1,9 +1,11 @@
 ﻿
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using OpenAI;
 using OpenAI.Images;
 using OpenAI.Responses;
 using System;
+using System.Collections.Generic;
 using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
 using System.IO;
 using System.Threading.Tasks;
@@ -31,12 +33,22 @@ namespace spGenerator
         }
         public async Task<dynamic> editDraft(int id, string edits)
         {
-            try
-            {
+           
                 var row = _db.SitePlanDrafts.Find(id);
-                if (row != null)
-                {
-#pragma warning disable OPENAI001
+               
+                    #pragma warning disable OPENAI001
+                    //Prepare context from folder
+                    var contextImages = new List<ResponseContentPart>();
+                    string folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "context");
+                    var files = Directory.GetFiles(folder);
+                    foreach (string file in files)
+                    {
+                        byte[] imgBytes = File.ReadAllBytes(file);
+
+                        contextImages.Add(ResponseContentPart.CreateInputImagePart(BinaryData.FromBytes(imgBytes, "image/png"),
+                imageDetailLevel: ResponseImageDetailLevel.Low));
+
+                    }
                     CreateResponseOptions format = new CreateResponseOptions()
                     {
                         Model = "gpt-5.1",
@@ -63,6 +75,8 @@ namespace spGenerator
                         }
                     };
                     format.InputItems.Add(ResponseItem.CreateUserMessageItem(_services.GeneratePrompt(null, row, false, edits, "")));
+                    format.InputItems.Add(ResponseItem.CreateUserMessageItem(contextImages));
+
                     var client = new OpenAIClient(
                             Environment.GetEnvironmentVariable("OPENAI_API_KEY")
                         );
@@ -70,7 +84,11 @@ namespace spGenerator
                     var responseClient = client.GetResponsesClient();
 
                     var answer = await responseClient.CreateResponseAsync(format);
-                    string editPrompt = "I have a blueprint already drafted that I want to make the following edits to (please be specific about changing what I ask and not other things unless associated " + edits;
+                    var txt = answer.Value.GetOutputText();
+                    var imageInstructions = (string)JObject.Parse(txt)["ImageInstruction"];
+
+                    //Use rseult in image edit
+                    string editPrompt = "I have a blueprint already drafted with the following isntructions that you should also adhere to"+imageInstructions+" . I want to make the following edits to (please be specific about changing what I ask and not other things unless associated " + edits;
                     GeneratedImage image = await imageClient.GenerateImageEditAsync(prompt: editPrompt, imageFilePath: Path.Combine(AppDomain.CurrentDomain.BaseDirectory, row.SiteOverview));
                     string directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints");
 
@@ -81,7 +99,6 @@ namespace spGenerator
 
 
 
-                    var txt = answer.Value.GetOutputText();
                     SitePlanDraft draft = JsonConvert.DeserializeObject<SitePlanDraft>(txt);
                     draft.SiteOverview = Path.Combine("blueprints", fileName);
                     draft.SitePlanRequestId = row.SitePlanRequestId;
@@ -94,16 +111,11 @@ namespace spGenerator
                     //Save draft to sql
                     _db.SaveChanges();
                     return draft;
-
-                }
-                return "Row Not Found";
-            }
-            catch (Exception ex) { return ex; }
+            
         }
-        public string finalizeDraft(int id)
+        public async Task<SitePlanFinal> finalizeDraft(int id)
         {
-            try
-            {
+           
                 var row = _db.SitePlanDrafts.Find(id);
                 SitePlanFinal finale = new SitePlanFinal
                 {
@@ -125,13 +137,9 @@ namespace spGenerator
                 _db.SaveChanges();
 
 
-                return "Draft successfully finalized";
+                return finale;
                 //Save reviewer, and timestamp
-            }
-            catch
-            {
-                return "Draft could not be finalized";
-            }
+            
         }
     }
 

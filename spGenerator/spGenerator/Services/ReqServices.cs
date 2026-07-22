@@ -1,4 +1,5 @@
 ﻿
+using System;
 using System.Threading.Tasks;
 
 namespace spGenerator
@@ -11,21 +12,14 @@ namespace spGenerator
             _db = new SitePlanAIPOCEntities();
         }
 
-        public async Task<string> createReq(SitePlanRequest req) {
+        public async Task<dynamic> createReq(SitePlanRequest req) {
             _db.SitePlanRequests.Add(req);
-            try
-            {
-                _db.SaveChanges();
-                return "Request successfully added";
-            }
-            catch
-            {
-                return "Error adding user";
-            }
+            await _db.SaveChangesAsync();
+            return req;
         }
         public async Task<dynamic> getReq(int id)
         {
-            var row = _db.SitePlanRequests.Find(id);
+            var row = await _db.SitePlanRequests.FindAsync(id);
             return row;
         }
     }

@@ -1,4 +1,5 @@
 using spGenerator;
+using System;
 using System.Threading.Tasks;
 using System.Web.Http;
 
@@ -16,8 +17,13 @@ namespace spGenerator.Controllers {
         [HttpPost]
         [Route("")]
         public async Task<IHttpActionResult> createRequest(SitePlanRequest req) {
-            string res = await _services.createReq(req);
-            return Ok(res);
+            if (req==null) return BadRequest("No site plan request venue information provided");
+            try {
+                var res = await _services.createReq(req);
+                return Ok(res);
+            }catch (Exception ex) {
+                return BadRequest(ex.Message); 
+            }
            
         }
 
@@ -25,14 +31,23 @@ namespace spGenerator.Controllers {
         [HttpGet]
         [Route("{id:int}")]
         public async Task<IHttpActionResult> GetReqByID(int id) {
-                var res = await _services.getReq(id);
-            if (res == null)
+            if (id<0) return BadRequest("No request to search for");
+            try
             {
-                return NotFound();
-            }else  {
-                return Ok(res); 
+                var res = await _services.getReq(id);
+                if (res == null)
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    return Ok(res);
+                }
             }
-            return Ok(res.row);
+      
+            catch (Exception ex) {
+                return BadRequest(ex.Message); }
+            ;
 
         }
 

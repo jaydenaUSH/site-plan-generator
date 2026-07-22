@@ -29,8 +29,16 @@ namespace spGenerator.Controllers{
         [Route("")]
         public async Task<IHttpActionResult> askAI(SitePlanRequest req)
         {
-            var results = await _services.askAI(req);
-            return Ok(results);
+            if (req==null) return BadRequest("The details for the site plan venue request could not be found");
+            try
+            {
+                var results = await _services.askAI(req);
+                return Ok(results);
+
+            } catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
     }

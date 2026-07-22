@@ -1,5 +1,7 @@
 ﻿
 using System;
+using System.Data.Entity;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace spGenerator
@@ -21,8 +23,12 @@ namespace spGenerator
         }
         public async Task<dynamic> getReq(int id)
         {
-            var row = await _db.SitePlanRequests.FindAsync(id);
-            return row;
+            return await _db.SitePlanRequests.FindAsync(id);
+        }
+
+        public async Task<dynamic> getAllReqs()
+        {
+            return await _db.SitePlanRequests.OrderByDescending(w=>w.Deadline).ToListAsync();
         }
     }
 }

@@ -6,9 +6,12 @@ using OpenAI.Images;
 using OpenAI.Responses;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity;
 using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using System.Web.Http;
 
 namespace spGenerator
 {
@@ -30,6 +33,11 @@ namespace spGenerator
         {
             var row = await _db.SitePlanDrafts.FindAsync(id);
             return row;
+        }
+        
+        public async Task<dynamic> getAllRequestDrafts(int reqId )
+        {
+            return await _db.SitePlanDrafts.Where(w => w.SitePlanRequestId == reqId).OrderByDescending(w=>w.CreatedAt).ToListAsync();
         }
         public async Task<dynamic> editDraft(int id, string edits)
         {

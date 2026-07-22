@@ -38,8 +38,21 @@
                 }
             
             }
-            //edit everything 
-            [HttpPut]
+        [HttpGet]
+        [Route("getAllRequestDrafts/{reqId:int}")]
+        public async Task<IHttpActionResult> getAllRequestDrafts(int reqId)
+        {
+            if (reqId <= 0) return BadRequest("Invalid site plan request ID");
+            try {
+                var res = await _services.getAllRequestDrafts(reqId);
+                return Ok(res);
+            }catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+        //edit everything 
+        [HttpPut]
             [Route("{id:int}/draft/edit")]
             public async Task<IHttpActionResult> editDraft(int id, [FromBody] string edits)
             {

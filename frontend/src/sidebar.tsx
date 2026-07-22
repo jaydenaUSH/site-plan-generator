@@ -3,7 +3,9 @@ function Sidebar() {
     return (
         <div className="flex w-full border-r-1 flex-col bg-primary h-full px-2 text-white py-10">
             <div>
-                <h3>US Hunger</h3>
+                <Link to='/'>
+                    <h3>US Hunger</h3>
+                </Link>
             </div>
             <div className="py-10 flex-col gap-12">
                 <Link to='/Past'>

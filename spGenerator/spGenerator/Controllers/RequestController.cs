@@ -27,7 +27,7 @@ namespace spGenerator.Controllers {
            
         }
 
-        //Get requests
+        //Get by id requests
         [HttpGet]
         [Route("{id:int}")]
         public async Task<IHttpActionResult> GetReqByID(int id) {
@@ -48,6 +48,20 @@ namespace spGenerator.Controllers {
             catch (Exception ex) {
                 return BadRequest(ex.Message); }
             ;
+
+        }
+        [HttpGet]
+        [Route("getAll")]
+        public async Task<IHttpActionResult> getAllReqs()
+        {
+            var res = await _services.getAllReqs();
+            if (res == null)
+            {
+                return NotFound();
+            } else
+            {
+                return Ok(res);
+            } 
 
         }
 

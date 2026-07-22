@@ -22,6 +22,7 @@ namespace spGenerator.Controllers{
         public SitePlanPromptBuilderController()
         {
             _services = new SitePlanPromptServices();
+
         }       
        
 

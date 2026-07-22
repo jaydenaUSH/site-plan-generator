@@ -19,6 +19,8 @@ namespace spGenerator
         public SitePlanPromptServices()
         {
             _db = new SitePlanAIPOCEntities();
+            _db.Configuration.ProxyCreationEnabled = false;
+
         }
 
 
@@ -26,6 +28,8 @@ namespace spGenerator
         public string GeneratePrompt(SitePlanRequest req, SitePlanDraft draft, bool image, string edits, string context)
         {
             var prompt = new StringBuilder();
+
+            //Clean JSON to reduce token use
             if (req == null)
             {
                 prompt.Append("I have a blueprint for setting up a venue for assembling prepackaged meals that I need to edit."); ;
@@ -33,14 +37,13 @@ namespace spGenerator
             }
             else
             {
-                prompt.Append("I need help planning out the blueprint for setting up a venue for assembling prepackaged meals."); ;
+                prompt.Append("I need help planning/rendering out the blueprint for setting up a venue for assembling prepackaged meals."); ;
 
             }
             prompt.Append("Notes to consider: assembly line tables are 6 or 8 ft long by 2.5 ft wide. If you consider the setup as a grid, the standard setup has a 5 ft gap between rows and 10 between columns.\n");
-            prompt.Append("Here are some images showing a template for making blueprints and past crated blueprints for context as you make the new ones" + context);
-            prompt.Append("The size of the document generated must scale the dimensions of the site. Attached below is a json object with information and notes about the site to consider while creating the venue." +
-                " Notes to consider: assembly line tables are 6 or 8 ft long by 2.5 ft wide. If you consider the setup as a grid, the standard setup has a 5 ft gap between rows and 10 between columns. " +
-                "The generated image should be a PDF. Furthermore, the size of the document generated must scale the dimensions of the site. Below is the JSON object with information to make the blueprint\n");
+            if (!image) { prompt.Append("Here are some images showing a template for making blueprints and past created blueprints for context as you make the new ones. Make instructions so others who can't see the templates can make new blueprints that adhere to the template" + context); }
+            else { prompt.Append("Use these guidelines "+ context); }
+            prompt.Append("The size of the document generated must scale the dimensions of the site. Attached below is a json object with information and notes about the site to consider while creating the venue.") ;
             if (req != null)
             {
                 prompt.Append(JsonConvert.SerializeObject(req));
@@ -63,19 +66,19 @@ namespace spGenerator
             return prompt.ToString();
         }
 
-        public async Task<string> askAI(SitePlanRequest req)
+        public async Task<SitePlanDraft> askAI(SitePlanRequest req)
         {
-#pragma warning disable OPENAI001
+            #pragma warning disable OPENAI001
             //Prepare context from folder
             var contextImages = new List<ResponseContentPart>();
-            string folder = "path";
+            string folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "context");
             var files = Directory.GetFiles(folder);
             foreach (string file in files)
             {
                 byte[] imgBytes = File.ReadAllBytes(file);
 
                 contextImages.Add(ResponseContentPart.CreateInputImagePart(BinaryData.FromBytes(imgBytes, "image/png"),
-        imageDetailLevel: ResponseImageDetailLevel.Low));
+        imageDetailLevel: ResponseImageDetailLevel.High));
 
             }
             // Create the format and options for Responses API call
@@ -99,7 +102,7 @@ namespace spGenerator
                         ""PMReviewChecklist"": { ""type"": ""string"" },
                         ""ImageInstruction"" : {""type"":""string""}
                 },
-                ""required"": [""SiteOverview"",""RecommendedLayout"",""VolunteerFlow"",""SupplyFlow"",""Timeline"",""Risks"",""PMReviewChecklist""],
+                ""required"": [""SiteOverview"",""RecommendedLayout"",""VolunteerFlow"",""SupplyFlow"",""Timeline"",""Risks"",""PMReviewChecklist"", ""ImageInstruction""],
                 ""additionalProperties"": false
             }"),
             jsonSchemaIsStrict: true)
@@ -133,7 +136,7 @@ namespace spGenerator
 
 
             SitePlanDraft draft = JsonConvert.DeserializeObject<SitePlanDraft>(txt);
-            draft.SiteOverview = Path.Combine(directory, fileName);
+            draft.SiteOverview = Path.Combine("blueprints", fileName);
             draft.SitePlanRequestId = req.Id;
             draft.Reviewer = "Placeholder Name";
             draft.CreatedAt = DateTime.UtcNow;
@@ -144,7 +147,7 @@ namespace spGenerator
             //Save draft to sql
             _db.SaveChanges();
             //return draft
-            return "SitePlanDraft table updated, and image generated in root project folder";
+            return draft;
 
 
 

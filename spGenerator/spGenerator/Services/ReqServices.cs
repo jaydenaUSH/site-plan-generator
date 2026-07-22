@@ -10,6 +10,8 @@ namespace spGenerator
         public ReqServices()
         {
             _db = new SitePlanAIPOCEntities();
+            _db.Configuration.ProxyCreationEnabled = false;
+
         }
 
         public async Task<dynamic> createReq(SitePlanRequest req) {

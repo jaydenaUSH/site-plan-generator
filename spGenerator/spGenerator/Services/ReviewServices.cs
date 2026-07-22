@@ -26,9 +26,9 @@ namespace spGenerator
 
         }
 
-        public dynamic getDraft(int id)
+        public async Task<dynamic> getDraft(int id)
         {
-            var row = _db.SitePlanDrafts.Find(id);
+            var row = await _db.SitePlanDrafts.FindAsync(id);
             return row;
         }
         public async Task<dynamic> editDraft(int id, string edits)
@@ -46,7 +46,7 @@ namespace spGenerator
                         byte[] imgBytes = File.ReadAllBytes(file);
 
                         contextImages.Add(ResponseContentPart.CreateInputImagePart(BinaryData.FromBytes(imgBytes, "image/png"),
-                imageDetailLevel: ResponseImageDetailLevel.Low));
+                imageDetailLevel: ResponseImageDetailLevel.High));
 
                     }
                     CreateResponseOptions format = new CreateResponseOptions()
@@ -65,9 +65,11 @@ namespace spGenerator
                         ""SupplyFlow"":        { ""type"": ""string"" },
                         ""Timeline"":          { ""type"": ""string"" },
                         ""Risks"":             { ""type"": ""string"" },
-                        ""PMReviewChecklist"": { ""type"": ""string"" }
+                        ""PMReviewChecklist"": { ""type"": ""string"" },
+                        ""ImageInstruction"" : { ""type"": ""string"" }
+
                 },
-                ""required"": [""SiteOverview"",""RecommendedLayout"",""VolunteerFlow"",""SupplyFlow"",""Timeline"",""Risks"",""PMReviewChecklist""],
+                ""required"": [""SiteOverview"",""RecommendedLayout"",""VolunteerFlow"",""SupplyFlow"",""Timeline"",""Risks"",""PMReviewChecklist"", ""ImageInstruction""],
                 ""additionalProperties"": false
             }"),
                     jsonSchemaIsStrict: true)
@@ -88,7 +90,7 @@ namespace spGenerator
                     var imageInstructions = (string)JObject.Parse(txt)["ImageInstruction"];
 
                     //Use rseult in image edit
-                    string editPrompt = "I have a blueprint already drafted with the following isntructions that you should also adhere to"+imageInstructions+" . I want to make the following edits to (please be specific about changing what I ask and not other things unless associated " + edits;
+                    string editPrompt = "I have a blueprint already drafted with the following instructions that you should also adhere to"+imageInstructions+" . I want to make the following edits to (please be specific about changing what I ask and not other things unless associated " + edits;
                     GeneratedImage image = await imageClient.GenerateImageEditAsync(prompt: editPrompt, imageFilePath: Path.Combine(AppDomain.CurrentDomain.BaseDirectory, row.SiteOverview));
                     string directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints");
 

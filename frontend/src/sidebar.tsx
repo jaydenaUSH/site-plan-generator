@@ -11,7 +11,7 @@ function Sidebar() {
                 <Link to='/Past'>
                     <p>Past</p>
                 </Link>
-                <p>SidebarItem</p>
+                <p>Finalized Drafts</p>
                 <p>SidebarItem</p></div>
 
 

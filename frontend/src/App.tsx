@@ -1,10 +1,10 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { Button } from './components/ui/button'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './components/ui/accordion'
 import { Field, FieldSet, FieldGroup, FieldTitle } from './components/ui/field'
 import { Input } from './components/ui/input'
 import { format } from "date-fns"
-import { ChevronDownIcon } from "lucide-react"
+import { ChevronDownIcon, Upload } from "lucide-react"
 import { Calendar } from "./components/ui/calendar"
 import {
     Popover,
@@ -12,11 +12,6 @@ import {
     PopoverTrigger,
 } from "./components/ui/popover"
 import Sidebar from "./sidebar"
-
-
-
-
-
 import './App.css'
 
 function App() {
@@ -25,25 +20,37 @@ function App() {
     const [address1, setAddress1] = useState("")
     const [address2, setAddress2] = useState("")
     const [city, setCity] = useState("")
-    const [zipcode, setZipcode] = useState(0)
+    const [zipcode, setZipcode] = useState < Number>()
     const [state, setCountry] = useState("")
     const [country, setState] = useState("")
 
-    const [volunteerCount, setVolunteerCount] = useState(0)
-    const [lineNumbers, setLineNumbers] = useState(0)
-    const [mealPackageGoal, setMealPackageGoal] = useState(0)
+    const [tableSizes, setTableSizes] = useState<number>()
+    const [lineNumbers, setLineNumbers] = useState < number>()
     const [roomNotes, setRoomNotes] = useState("")
     const [loadingNotes, setLoadingNotes] = useState("")
-    const [equipment, setEquipment] = useState("")
-    const [constraints, setConstraints] = useState("")
+    const [palettes, setPalettes] = useState < number>()
+    const [clientName, setClientName] = useState("")
     const [additionalNotes, setAdditionalNotes] = useState("")
-    const [projectType, setProjectType] = useState("")
-    //6
+    const inputRef = useRef<HTMLInputElement>(null)
+    const [selectedFile, setSelectedFile] = useState(null)
+    const apiBase = 'https://localhost:44306'
 
 
+    const attachFile = (event) => {
+        const selected = event.target.files[0]
+        if (selected) {
+            setSelectedFile(selected)
+        }
+    }
 
+    const createReq = async () => {
+        if (selectedFile){
+            const form = new FormData(selectedFile)
+        }
+        const response = await fetch(`${apiBase}/api/requests`, { headers: { "Accept": "application/json" }, method: "GET" }, body: {
 
-
+        })
+    }
 
     return (
         <div className="bg-background w-full h-screen flex flex-1 flex-row justify-between text-center relative ">
@@ -67,12 +74,13 @@ function App() {
                                     <AccordionTrigger className="text-center flex justify-center items-center">Venue Overview</AccordionTrigger>
                                     <AccordionContent className="">
                                         <Field>
-                                            <FieldTitle>Venue Name</FieldTitle>
-                                            <Input value={venueName} onInput={(e) => setVenueName(e.target.value)} />
+                                            <FieldTitle>Client Name</FieldTitle>
+                                            <Input value={clientName} onInput={(e) => setClientName(e.target.value)} />
 
                                         </Field>
+                                        
                                         <Field>
-                                            <FieldTitle>Date</FieldTitle>
+                                            <FieldTitle>Project Date</FieldTitle>
                                             <Popover>
                                                 <PopoverTrigger render={<Button variant={"outline"} data-empty={!date} className="w-[212px] justify-between text-left font-normal data-[empty=true]:text-muted-foreground">{date ? format(date, "PPP") : <span>Pick a date</span>}<ChevronDownIcon data-icon="inline-end" /></Button>} />
                                                 <PopoverContent className="w-auto p-0" align="start">
@@ -86,6 +94,11 @@ function App() {
                                             </Popover>
                                         </Field>
                                         <FieldGroup className="flex">
+                                            <Field>
+                                                <FieldTitle>Venue Name</FieldTitle>
+                                                <Input value={venueName} onInput={(e) => setVenueName(e.target.value)} />
+
+                                            </Field>
                                             <Field>
                                                 <FieldTitle>Address Line 1</FieldTitle>
                                                 <Input value={address1} onInput={(e) => setAddress1(e.target.value)} />
@@ -137,28 +150,25 @@ function App() {
                                 <AccordionItem >
                                     <AccordionTrigger>Numerics</AccordionTrigger>
                                     <AccordionContent>
-                                        <FieldGroup className="flex-row flex justify-between px-4">
+                                        <FieldGroup className="flex-row flex justify-center px-4 gap-[35%]">
                                             <div>
 
-                                                <FieldTitle>Volunteer Count</FieldTitle>
-                                                <Input value={volunteerCount} onInput={(e) => setVolunteerCount(e.target.value)} />
+                                                <FieldTitle>Number of Palettes</FieldTitle>
+                                                <Input value={palettes} onInput={(e) => setPalettes(e.target.value)} />
                                             </div>
                                             <div>
                                                 <FieldTitle>Number of Lines</FieldTitle>
                                                 <Input value={lineNumbers} onInput={(e) => setLineNumbers(e.target.value)} />
 
                                             </div>
-
                                             <div>
-                                                <FieldTitle>Meal Goal</FieldTitle>
-                                                <Input value={mealPackageGoal} onInput={(e) => setMealPackageGoal(e.target.value)} />
+
+                                                <FieldTitle>Table Sizes</FieldTitle>
+                                                <Input placeholder="Ex: 10,6" value={tableSizes} onInput={(e) => setTableSizes(e.target.value)} />
                                             </div>
 
-
-
+                                          
                                         </FieldGroup>
-
-
 
                                     </AccordionContent>
                                 </ AccordionItem>
@@ -168,31 +178,29 @@ function App() {
                                 <AccordionItem >
                                     <AccordionTrigger> Notes</AccordionTrigger>
                                     <AccordionContent>
+                                       
                                         <Field>
-                                            <FieldTitle>Project Type</FieldTitle>
-                                            <Input value={projectType} onInput={(e) => setProjectType(e.target.value)} />
-                                        </Field>
-                                        <Field>
-                                            <FieldTitle>Room Notes</FieldTitle>
-                                            <Input value={roomNotes} onInput={(e) => setRoomNotes(e.target.value)} />
+                                            <FieldTitle>Room Dimensions</FieldTitle>
+                                            <Input placeholder="Ex: 10x10 or Half circle with a 100ft diameter" value={roomNotes} onInput={(e) => setRoomNotes(e.target.value)} />
 
                                         </Field>
                                         <Field>
                                             <FieldTitle>Loading Notes</FieldTitle>
                                             <Input value={loadingNotes} onInput={(e) => setLoadingNotes(e.target.value)} />
                                         </Field><Field>
-                                            <FieldTitle>Available Equipment</FieldTitle>
-                                            <Input value={equipment} onInput={(e) => setEquipment(e.target.value)} />
-                                        </Field><Field>
-                                            <FieldTitle>Special Constraints</FieldTitle>
-                                            <Input value={constraints} onInput={(e) => setConstraints(e.target.value)} />
-                                        </Field><Field>
                                             <FieldTitle>Additional Notes</FieldTitle>
-                                            <Input value={additionalNotes} onInput={(e) => setAdditionalNotes(e.target.value)} />
+                                            <Input placeholder='Enter notes/constraints' value={additionalNotes} onInput={(e) => setAdditionalNotes(e.target.value)} />
                                         </Field>
                                         <Field>
-                                            <FieldTitle>Upload File</FieldTitle>
-                                            <Button className='max-w-[25%] bg-accent'>Choose file to upload</Button>
+                                            <FieldTitle>Venue Floor Plan </FieldTitle>
+                                            <div className="flex flex-row w-full items-center gap-10 mr-5">
+                                                <Button className='max-w-[25%] bg-accent' onClick={() => {
+                                                    inputRef.current.click()
+                                                } }><Upload/>Upload Venue Floor Plan</Button>
+                                                <p className='mr-5'>(JPEG, JPG, PNG, PDF)</p>
+                                                <input type="file" ref={inputRef} accept=".jpeg, .jpg, .png, .pdf" onClick={attachFile} className="hidden" />
+
+                                            </div>
                                         </Field>
 
                                     </AccordionContent>

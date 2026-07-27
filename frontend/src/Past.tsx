@@ -37,10 +37,12 @@ function Past() {
                                 <Card className='cursor-pointer' onClick={() => {
                                     navigator(`/requests/${draft.Id}`)
                                 }}>
-                                    <CardHeader><CardTitle>{draft.VenueName}</CardTitle>
+                                    <CardHeader><CardTitle className="font-semibold">Client Name</CardTitle>
                                     <CardDescription>{draft.Deadline.slice(0,10)}</CardDescription>
                                     </CardHeader>
-                                    <CardContent>{draft.VenueAddress}</CardContent>
+                                    <CardContent>
+                                        <p className="font-medium">{draft.VenueName}</p>
+                                       <p> {draft.VenueAddress}</p></CardContent>
 
                                 </Card>
                             </div>

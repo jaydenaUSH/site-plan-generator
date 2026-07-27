@@ -25,7 +25,7 @@ function App() {
     const [country, setState] = useState("")
 
     const [tableSizes, setTableSizes] = useState<number>()
-    const [lineNumbers, setLineNumbers] = useState < number>()
+    const [lineNumber, setLineNumber] = useState < number>()
     const [roomNotes, setRoomNotes] = useState("")
     const [loadingNotes, setLoadingNotes] = useState("")
     const [palettes, setPalettes] = useState < number>()
@@ -44,12 +44,29 @@ function App() {
     }
 
     const createReq = async () => {
+        let form
         if (selectedFile){
-            const form = new FormData(selectedFile)
+             form = new FormData(selectedFile)
         }
-        const response = await fetch(`${apiBase}/api/requests`, { headers: { "Accept": "application/json" }, method: "GET" }, body: {
-
-        })
+        const fullAddress = address1 + address2 + city + state + zipcode
+        const response = await fetch(`${apiBase}/api/requests`, {
+            headers: { "Accept": "application/json" }, method: "POST", body: JSON.stringify({
+                ClientName: clientName,
+                Deadline : date,
+                VenueName: venueName,
+                VenueAddress: fullAddress,
+                NumberofPalettes: palettes,
+                NumberofLines: lineNumber,
+                TableSizes: tableSizes,
+                RoomSpaceNotes: roomNotes,
+                LoadingNotes :loadingNotes,
+                AdditionalNotes: additionalNotes, 
+                RoomBlueprintFilePath: form
+                
+            }))
+        if (response.ok) {
+            console.log("Request creted")
+        } else {console.log("Error creating request") }
     }
 
     return (
@@ -210,7 +227,7 @@ function App() {
                     </Accordion>
                 </div>
                 <div className="flex items-center justify-center pt-15">
-                    <Button className="bg-primary mb-5">Generate Blueprint</Button>
+                    <Button className="bg-primary mb-5" onClick={() => {createReq() } }>Generate Blueprint</Button>
 
                 </div>
 

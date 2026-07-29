@@ -16,9 +16,18 @@ namespace spGenerator
 
         }
 
-        public async Task<dynamic> createReq(SitePlanRequest req) {
+        public async Task<dynamic> createReq(SitePlanRequest req)
+        {
             _db.SitePlanRequests.Add(req);
-            await _db.SaveChangesAsync();
+            try
+            {
+                await _db.SaveChangesAsync();
+
+            }
+            catch (Exception ex)
+            {
+                return ex;
+            }
             return req;
         }
         public async Task<dynamic> getReq(int id)
@@ -28,7 +37,7 @@ namespace spGenerator
 
         public async Task<dynamic> getAllReqs()
         {
-            return await _db.SitePlanRequests.OrderByDescending(w=>w.Deadline).ToListAsync();
+            return await _db.SitePlanRequests.OrderByDescending(w => w.Deadline).ToListAsync();
         }
     }
 }

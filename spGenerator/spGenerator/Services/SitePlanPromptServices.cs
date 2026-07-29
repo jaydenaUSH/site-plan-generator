@@ -7,6 +7,7 @@ using OpenAI.Images;
 using OpenAI.Responses;
 using System;
 using System.Collections.Generic;
+using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -37,13 +38,13 @@ namespace spGenerator
             }
             else
             {
-                prompt.Append("I need help planning/rendering out the blueprint for setting up a venue for assembling prepackaged meals."); ;
+                prompt.Append("I need help rendering/planning out the blueprint for setting up a venue for assembling prepackaged meals."); ;
 
             }
-            prompt.Append("Notes to consider: assembly line tables are 6 or 8 ft long by 2.5 ft wide. If you consider the setup as a grid, the standard setup has a 5 ft gap between rows and 10 between columns.\n");
-            if (!image) { prompt.Append("Here are some images showing a template for making blueprints and past created blueprints for context as you make the new ones. Make instructions so others who can't see the templates can make new blueprints that adhere to the template" + context); }
-            else { prompt.Append("Use these guidelines "+ context); }
-            prompt.Append("The size of the document generated must scale the dimensions of the site. Attached below is a json object with information and notes about the site to consider while creating the venue.") ;
+            prompt.Append("Notes to consider: assembly line tables are usually 6 or 8 ft long by 2.5 ft wide unless otherwise stated below by the attribute Table Sizes. If you consider the setup as a grid, the standard setup has a 5 ft gap between rows and 10 ft between columns.\n");
+            if (!image) { prompt.Append("Here are some images showing a template for making blueprints and past created blueprints for context as you make the new ones. Make instructions so other models who can't see the templates can make new blueprints that adhere to the template" + context); }
+            else { prompt.Append("Use these guidelines " + context); }
+            prompt.Append("The size of the document generated must proportionally scale the dimensions of the site the attribute Room Dimensions. Attached below is a json object with information and notes about the site to consider while creating the venue. The Volunteer Flow (path fow volunteers to enter) and Supply Flow should be labeled with arrows");
             if (req != null)
             {
                 prompt.Append(JsonConvert.SerializeObject(req));
@@ -68,16 +69,22 @@ namespace spGenerator
 
         public async Task<SitePlanDraft> askAI(SitePlanRequest req)
         {
-            #pragma warning disable OPENAI001
+#pragma warning disable OPENAI001
             //Prepare context from folder
             var contextImages = new List<ResponseContentPart>();
             string folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "context");
             var files = Directory.GetFiles(folder);
             foreach (string file in files)
             {
-                byte[] imgBytes = File.ReadAllBytes(file);
+                byte[] fileBytes = File.ReadAllBytes(file);
+                if (Path.GetExtension(file).ToLower() == ".pdf")
+                {
+                    contextImages.Add(ResponseContentPart.CreateInputImagePart(
+                        BinaryData.FromBytes(fileBytes, "application/pdf"),
+                        imageDetailLevel: ResponseImageDetailLevel.High));
+                }
 
-                contextImages.Add(ResponseContentPart.CreateInputImagePart(BinaryData.FromBytes(imgBytes, "image/png"),
+                contextImages.Add(ResponseContentPart.CreateInputImagePart(BinaryData.FromBytes(fileBytes, "image/png"),
         imageDetailLevel: ResponseImageDetailLevel.High));
 
             }
@@ -125,7 +132,17 @@ namespace spGenerator
             //Use result from the Responses API to input into images API
 
             var imageInstructions = (string)JObject.Parse(txt)["ImageInstruction"];
-            GeneratedImage image = await imageClient.GenerateImageAsync(prompt: GeneratePrompt(req, null, true, "", imageInstructions));
+            //Use blueprint if given one, resort to making from scratch otherwise
+            GeneratedImage image;
+            if (req.RoomBlueprintFilePath != null && req.RoomBlueprintFilePath != "")
+            {
+                image = await imageClient.GenerateImageEditAsync(imageFilePath: Path.Combine(AppDomain.CurrentDomain.BaseDirectory, req.RoomBlueprintFilePath), prompt: GeneratePrompt(req, null, true, "", imageInstructions));
+
+            }
+            else
+            {
+                image = await imageClient.GenerateImageAsync(prompt: GeneratePrompt(req, null, true, "", imageInstructions));
+            }
 
             string directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints");
 

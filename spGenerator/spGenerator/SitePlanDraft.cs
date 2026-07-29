@@ -18,8 +18,6 @@ namespace spGenerator
         public int SitePlanRequestId { get; set; }
         public string SiteOverview { get; set; }
         public string RecommendedLayout { get; set; }
-        public string VolunteerFlow { get; set; }
-        public string SupplyFlow { get; set; }
         public string Timeline { get; set; }
         public string Risks { get; set; }
         public string PMReviewChecklist { get; set; }

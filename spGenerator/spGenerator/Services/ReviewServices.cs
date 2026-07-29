@@ -34,37 +34,48 @@ namespace spGenerator
             var row = await _db.SitePlanDrafts.FindAsync(id);
             return row;
         }
-        
-        public async Task<dynamic> getAllRequestDrafts(int reqId )
+
+        public async Task<dynamic> getAllRequestDrafts(int reqId)
         {
-            return await _db.SitePlanDrafts.Where(w => w.SitePlanRequestId == reqId).OrderByDescending(w=>w.CreatedAt).ToListAsync();
+            return await _db.SitePlanDrafts.Where(w => w.SitePlanRequestId == reqId).OrderByDescending(w => w.CreatedAt).ToListAsync();
         }
         public async Task<dynamic> editDraft(int id, string edits)
         {
-           
-                var row = _db.SitePlanDrafts.Find(id);
-               
-                    #pragma warning disable OPENAI001
-                    //Prepare context from folder
-                    var contextImages = new List<ResponseContentPart>();
-                    string folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "context");
-                    var files = Directory.GetFiles(folder);
-                    foreach (string file in files)
-                    {
-                        byte[] imgBytes = File.ReadAllBytes(file);
 
-                        contextImages.Add(ResponseContentPart.CreateInputImagePart(BinaryData.FromBytes(imgBytes, "image/png"),
+            var row = _db.SitePlanDrafts.Find(id);
+            var reqRow = _db.SitePlanRequests.Find(row.SitePlanRequestId);
+            if (reqRow == null)
+            {
+                throw new InvalidOperationException($"Request not found for draft {id}");
+            }
+
+#pragma warning disable OPENAI001
+            //Prepare context from folder
+            var contextImages = new List<ResponseContentPart>();
+            string folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "context");
+            var files = Directory.GetFiles(folder);
+            foreach (string file in files)
+            {
+                byte[] fileBytes = File.ReadAllBytes(file);
+                if (Path.GetExtension(file).ToLower() == ".pdf")
+                {
+                    contextImages.Add(ResponseContentPart.CreateInputImagePart(
+                        BinaryData.FromBytes(fileBytes, "application/pdf"),
+                        imageDetailLevel: ResponseImageDetailLevel.High));
+                }
+
+                contextImages.Add(ResponseContentPart.CreateInputImagePart(BinaryData.FromBytes(fileBytes, "image/png"),
                 imageDetailLevel: ResponseImageDetailLevel.High));
 
-                    }
-                    CreateResponseOptions format = new CreateResponseOptions()
-                    {
-                        Model = "gpt-5.1",
-                        TextOptions = new ResponseTextOptions
-                        {
-                            TextFormat = ResponseTextFormat.CreateJsonSchemaFormat(
-                            jsonSchemaFormatName: "site_plan",
-                            jsonSchema: BinaryData.FromString(@"{
+            }
+            CreateResponseOptions format = new CreateResponseOptions()
+            {
+                Model = "gpt-5.1",
+                TextOptions = new ResponseTextOptions
+                {
+                    TextFormat = ResponseTextFormat.CreateJsonSchemaFormat(
+                    jsonSchemaFormatName: "site_plan",
+                    jsonSchema: BinaryData.FromString(@"{
                     ""type"": ""object"",
                     ""properties"": {
                         ""SiteOverview"":      { ""type"": ""string"" },
@@ -80,76 +91,82 @@ namespace spGenerator
                 ""required"": [""SiteOverview"",""RecommendedLayout"",""VolunteerFlow"",""SupplyFlow"",""Timeline"",""Risks"",""PMReviewChecklist"", ""ImageInstruction""],
                 ""additionalProperties"": false
             }"),
-                    jsonSchemaIsStrict: true)
+            jsonSchemaIsStrict: true)
 
-                        }
-                    };
-                    format.InputItems.Add(ResponseItem.CreateUserMessageItem(_services.GeneratePrompt(null, row, false, edits, "")));
-                    format.InputItems.Add(ResponseItem.CreateUserMessageItem(contextImages));
+                }
+            };
 
-                    var client = new OpenAIClient(
+            var dimensionsContext = $"\n\nVenue room dimensions are: {reqRow.RoomDimensions}. Consider these when analyzing the edits.";
+
+
+            format.InputItems.Add(ResponseItem.CreateUserMessageItem(_services.GeneratePrompt(null, row, false, edits, "")));
+            format.InputItems.Add(ResponseItem.CreateUserMessageItem(dimensionsContext));
+            format.InputItems.Add(ResponseItem.CreateUserMessageItem(contextImages));
+
+
+
+            var client = new OpenAIClient(
                             Environment.GetEnvironmentVariable("OPENAI_API_KEY")
                         );
-                    var imageClient = client.GetImageClient("gpt-image-1");
-                    var responseClient = client.GetResponsesClient();
+            var imageClient = client.GetImageClient("gpt-image-1");
+            var responseClient = client.GetResponsesClient();
 
-                    var answer = await responseClient.CreateResponseAsync(format);
-                    var txt = answer.Value.GetOutputText();
-                    var imageInstructions = (string)JObject.Parse(txt)["ImageInstruction"];
+            var answer = await responseClient.CreateResponseAsync(format);
+            var txt = answer.Value.GetOutputText();
+            var imageInstructions = (string)JObject.Parse(txt)["ImageInstruction"];
 
-                    //Use rseult in image edit
-                    string editPrompt = "I have a blueprint already drafted with the following instructions that you should also adhere to"+imageInstructions+" . I want to make the following edits to (please be specific about changing what I ask and not other things unless associated " + edits;
-                    GeneratedImage image = await imageClient.GenerateImageEditAsync(prompt: editPrompt, imageFilePath: Path.Combine(AppDomain.CurrentDomain.BaseDirectory, row.SiteOverview));
-                    string directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints");
+            //Use result in image edit
+            string editPrompt = "I have a blueprint already drafted using the following instructions that you should also adhere to" + imageInstructions + " . I want to make the following edits to (please be specific about changing what I ask and not other things unless associated " + edits +
+                                ". The output image should have dimensions that are proportionally scaled of the venue's room dimensions listed here:" + reqRow.RoomDimensions;
+            GeneratedImage image = await imageClient.GenerateImageEditAsync(prompt: editPrompt, imageFilePath: Path.Combine(AppDomain.CurrentDomain.BaseDirectory, row.SiteOverview));
+            string directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints");
 
-                    string fileName = $"blueprint_{DateTime.UtcNow:yyyyMMddHHmmss}.png";
-                    // turn image.ImageBytes 2 array and save the bytes as a file;
-                    byte[] imageBytes = image.ImageBytes.ToArray();
-                    System.IO.File.WriteAllBytes(Path.Combine(directory, fileName), imageBytes);
-
-
-
-                    SitePlanDraft draft = JsonConvert.DeserializeObject<SitePlanDraft>(txt);
-                    draft.SiteOverview = Path.Combine("blueprints", fileName);
-                    draft.SitePlanRequestId = row.SitePlanRequestId;
-                    draft.Reviewer = "Placeholder Name";
-                    draft.CreatedAt = DateTime.UtcNow;
-                    _db.SitePlanDrafts.Add(draft);
+            string fileName = $"blueprint_{DateTime.UtcNow:yyyyMMddHHmmss}.png";
+            // turn image.ImageBytes 2 array and save the bytes as a file;
+            byte[] imageBytes = image.ImageBytes.ToArray();
+            System.IO.File.WriteAllBytes(Path.Combine(directory, fileName), imageBytes);
 
 
 
-                    //Save draft to sql
-                    _db.SaveChanges();
-                    return draft;
-            
+            SitePlanDraft draft = JsonConvert.DeserializeObject<SitePlanDraft>(txt);
+            draft.SiteOverview = Path.Combine("blueprints", fileName);
+            draft.SitePlanRequestId = row.SitePlanRequestId;
+            draft.Reviewer = "Placeholder Name";
+            draft.CreatedAt = DateTime.UtcNow;
+            _db.SitePlanDrafts.Add(draft);
+
+
+
+            //Save draft to sql
+            _db.SaveChanges();
+            return draft;
+
         }
         public async Task<SitePlanFinal> finalizeDraft(int id)
         {
-           
-                var row = _db.SitePlanDrafts.Find(id);
-                SitePlanFinal finale = new SitePlanFinal
-                {
-                    SitePlanRequestId = row.SitePlanRequestId,
-                    SiteOverview = row.SiteOverview,
-                    RecommendedLayout = row.RecommendedLayout,
-                    VolunteerFlow = row.VolunteerFlow,
-                    SupplyFlow = row.SupplyFlow,
-                    Timeline = row.Timeline,
-                    Risks = row.Risks,
-                    PMReviewChecklist = row.PMReviewChecklist,
-                    Reviewer = row.Reviewer,
-                    AdditionalNotes = row.AdditionalNotes
-                };
-                _db.SitePlanFinals.Add(finale);
-                _db.SaveChanges();
 
-                row.finalVersion = finale.Id;
-                _db.SaveChanges();
+            var row = _db.SitePlanDrafts.Find(id);
+            SitePlanFinal finale = new SitePlanFinal
+            {
+                SitePlanRequestId = row.SitePlanRequestId,
+                SiteOverview = row.SiteOverview,
+                RecommendedLayout = row.RecommendedLayout,
+                Timeline = row.Timeline,
+                Risks = row.Risks,
+                PMReviewChecklist = row.PMReviewChecklist,
+                Reviewer = row.Reviewer,
+                AdditionalNotes = row.AdditionalNotes
+            };
+            _db.SitePlanFinals.Add(finale);
+            _db.SaveChanges();
+
+            row.finalVersion = finale.Id;
+            _db.SaveChanges();
 
 
-                return finale;
-                //Save reviewer, and timestamp
-            
+            return finale;
+            //Save reviewer, and timestamp
+
         }
     }
 

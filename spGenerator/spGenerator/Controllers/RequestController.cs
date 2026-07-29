@@ -3,35 +3,42 @@ using System;
 using System.Threading.Tasks;
 using System.Web.Http;
 
-namespace spGenerator.Controllers {
+namespace spGenerator.Controllers
+{
     [RoutePrefix("api/requests")]
-    public class RequestController : ApiController {
+    public class RequestController : ApiController
+    {
 
         private readonly ReqServices _services;
         public RequestController()
-            {
+        {
             _services = new ReqServices();
-            }
+        }
 
         //Post requests
         [HttpPost]
         [Route("")]
-        public async Task<IHttpActionResult> createRequest(SitePlanRequest req) {
-            if (req==null) return BadRequest("No site plan request venue information provided");
-            try {
+        public async Task<IHttpActionResult> createRequest(SitePlanRequest req)
+        {
+            if (req == null) return BadRequest("No site plan request venue information provided");
+            try
+            {
                 var res = await _services.createReq(req);
                 return Ok(res);
-            }catch (Exception ex) {
-                return BadRequest(ex.Message); 
             }
-           
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+
         }
 
         //Get by id requests
         [HttpGet]
         [Route("{id:int}")]
-        public async Task<IHttpActionResult> GetReqByID(int id) {
-            if (id<0) return BadRequest("No request to search for");
+        public async Task<IHttpActionResult> GetReqByID(int id)
+        {
+            if (id < 0) return BadRequest("No request to search for");
             try
             {
                 var res = await _services.getReq(id);
@@ -44,9 +51,11 @@ namespace spGenerator.Controllers {
                     return Ok(res);
                 }
             }
-      
-            catch (Exception ex) {
-                return BadRequest(ex.Message); }
+
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
             ;
 
         }
@@ -58,10 +67,11 @@ namespace spGenerator.Controllers {
             if (res == null)
             {
                 return NotFound();
-            } else
+            }
+            else
             {
                 return Ok(res);
-            } 
+            }
 
         }
 

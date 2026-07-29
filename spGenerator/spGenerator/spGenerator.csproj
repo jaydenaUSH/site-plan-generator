@@ -196,6 +196,8 @@
     <Compile Include="Services\SitePlanPromptServices.cs" />
     <Compile Include="Services\ReviewServices.cs" />
     <Compile Include="Services\ReqServices.cs" />
+    <Compile Include="AppStart\WebApiConfig.cs" />
+    <Compile Include="Controllers\RequestController.cs" />
     <Compile Include="SitePlanDraft.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
@@ -205,8 +207,6 @@
     <Compile Include="SitePlanRequest.cs">
       <DependentUpon>Model1.tt</DependentUpon>
     </Compile>
-    <Compile Include="AppStart\WebApiConfig.cs" />
-    <Compile Include="Controllers\RequestController.cs" />
   </ItemGroup>
   <ItemGroup>
     <EntityDeploy Include="Model1.edmx">

@@ -24,18 +24,17 @@ namespace spGenerator
         public int Id { get; set; }
         public string VenueName { get; set; }
         public string VenueAddress { get; set; }
-        public Nullable<int> VolunteerCount { get; set; }
         public Nullable<int> NumberofLines { get; set; }
-        public Nullable<int> MealPackageGoal { get; set; }
-        public string RoomSpaceNotes { get; set; }
+        public string RoomDimensions { get; set; }
         public string LoadingNotes { get; set; }
-        public string AvaialableEquipment { get; set; }
         public Nullable<System.DateTime> Deadline { get; set; }
         public string SpecialConstraints { get; set; }
-        public string ProjectType { get; set; }
         public string AdditionalNotes { get; set; }
         public string RoomBlueprintFilePath { get; set; }
         public Nullable<System.DateTime> CreatedAtUtc { get; set; }
+        public Nullable<int> NumberofPalettes { get; set; }
+        public string ClientName { get; set; }
+        public Nullable<int> TableSizes { get; set; }
     
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<SitePlanDraft> SitePlanDrafts { get; set; }

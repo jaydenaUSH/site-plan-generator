@@ -12,22 +12,22 @@ namespace spGenerator
     using System;
     using System.Data.Entity;
     using System.Data.Entity.Infrastructure;
-    
+
     public partial class SitePlanAIPOCEntities : DbContext
     {
         public SitePlanAIPOCEntities()
             : base("name=SitePlanAIPOCEntities")
         {
         }
-    
+
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
             throw new UnintentionalCodeFirstException();
         }
-    
-        public virtual DbSet<SitePlanRequest> SitePlanRequests { get; set; }
+
         public virtual DbSet<ReferenceDocument> ReferenceDocuments { get; set; }
         public virtual DbSet<SitePlanDraft> SitePlanDrafts { get; set; }
         public virtual DbSet<SitePlanFinal> SitePlanFinals { get; set; }
+        public virtual DbSet<SitePlanRequest> SitePlanRequests { get; set; }
     }
 }

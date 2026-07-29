@@ -20,9 +20,9 @@ function App() {
     const [address1, setAddress1] = useState("")
     const [address2, setAddress2] = useState("")
     const [city, setCity] = useState("")
-    const [zipcode, setZipcode] = useState < Number>()
-    const [state, setCountry] = useState("")
-    const [country, setState] = useState("")
+    const [zipcode, setZipcode] = useState < number>()
+    const [state, setState] = useState("")
+    const [country, setCountry] = useState("")
 
     const [tableSizes, setTableSizes] = useState<number>()
     const [lineNumber, setLineNumber] = useState < number>()
@@ -31,6 +31,7 @@ function App() {
     const [palettes, setPalettes] = useState < number>()
     const [clientName, setClientName] = useState("")
     const [additionalNotes, setAdditionalNotes] = useState("")
+
     const inputRef = useRef<HTMLInputElement>(null)
     const [selectedFile, setSelectedFile] = useState(null)
     const apiBase = 'https://localhost:44306'
@@ -44,29 +45,30 @@ function App() {
     }
 
     const createReq = async () => {
-        let form
-        if (selectedFile){
-             form = new FormData(selectedFile)
-        }
+        
         const fullAddress = address1 + address2 + city + state + zipcode
         const response = await fetch(`${apiBase}/api/requests`, {
-            headers: { "Accept": "application/json" }, method: "POST", body: JSON.stringify({
+            headers: {
+                "Accept": "application/json", "Content-Type": "application/json",
+                 }, method: "POST", body: JSON.stringify({
                 ClientName: clientName,
-                Deadline : date,
+                Deadline: date,
                 VenueName: venueName,
                 VenueAddress: fullAddress,
                 NumberofPalettes: palettes,
                 NumberofLines: lineNumber,
                 TableSizes: tableSizes,
-                RoomSpaceNotes: roomNotes,
-                LoadingNotes :loadingNotes,
-                AdditionalNotes: additionalNotes, 
-                RoomBlueprintFilePath: form
-                
-            }))
+                RoomDimensions: roomNotes,
+                LoadingNotes: loadingNotes,
+                AdditionalNotes: additionalNotes,
+                RoomBlueprintFilePath: selectedFile?.name
+
+            })
+        })
+        const data = await response.json();
         if (response.ok) {
             console.log("Request creted")
-        } else {console.log("Error creating request") }
+        } else {console.log("Error creating request", data) }
     }
 
     return (
@@ -175,7 +177,7 @@ function App() {
                                             </div>
                                             <div>
                                                 <FieldTitle>Number of Lines</FieldTitle>
-                                                <Input value={lineNumbers} onInput={(e) => setLineNumbers(e.target.value)} />
+                                                <Input value={lineNumber} onInput={(e) => setLineNumber(e.target.value)} />
 
                                             </div>
                                             <div>
@@ -208,6 +210,7 @@ function App() {
                                             <FieldTitle>Additional Notes</FieldTitle>
                                             <Input placeholder='Enter notes/constraints' value={additionalNotes} onInput={(e) => setAdditionalNotes(e.target.value)} />
                                         </Field>
+
                                         <Field>
                                             <FieldTitle>Venue Floor Plan </FieldTitle>
                                             <div className="flex flex-row w-full items-center gap-10 mr-5">
@@ -215,7 +218,7 @@ function App() {
                                                     inputRef.current.click()
                                                 } }><Upload/>Upload Venue Floor Plan</Button>
                                                 <p className='mr-5'>(JPEG, JPG, PNG, PDF)</p>
-                                                <input type="file" ref={inputRef} accept=".jpeg, .jpg, .png, .pdf" onClick={attachFile} className="hidden" />
+                                                <input type="file" ref={inputRef} accept=".jpeg, .jpg, .png, .pdf" onChange={attachFile} className="hidden" />
 
                                             </div>
                                         </Field>

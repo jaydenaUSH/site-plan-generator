@@ -11,6 +11,8 @@ const AppRoutes: React.FC = () => (
         < Route path='/past' element={<Past />} />
         < Route path='/requests/:id' element={<Request />} />
         < Route path='/requests/:id/image' element={<ImagePage />} />
+        < Route path='/requests/:id/image' element={<ImagePage />} />
+
 
 
     </Routes>

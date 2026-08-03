@@ -18,6 +18,7 @@ namespace spGenerator
 
         public async Task<dynamic> createReq(SitePlanRequest req)
         {
+            req.CreatedAtUtc = DateTime.UtcNow;
             _db.SitePlanRequests.Add(req);
             try
             {

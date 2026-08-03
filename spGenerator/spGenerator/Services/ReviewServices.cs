@@ -12,6 +12,13 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Drawing;
+using System.Drawing.Imaging;
+using iLovePdf;
+using iLovePdf.Core;
+using iLovePdf.Model.Enums;
+using iLovePdf.Model.Task;
+using iLovePdf.Model.TaskParams;
 
 namespace spGenerator
 {
@@ -59,16 +66,20 @@ namespace spGenerator
                 byte[] fileBytes = File.ReadAllBytes(file);
                 if (Path.GetExtension(file).ToLower() == ".pdf")
                 {
-                    contextImages.Add(ResponseContentPart.CreateInputImagePart(
+                    contextImages.Add(ResponseContentPart.CreateInputFilePart(
                         BinaryData.FromBytes(fileBytes, "application/pdf"),
-                        imageDetailLevel: ResponseImageDetailLevel.High));
+                            "application/pdf",
+                               Path.GetFileName(file)
+                        ));
                 }
+                else
 
-                contextImages.Add(ResponseContentPart.CreateInputImagePart(BinaryData.FromBytes(fileBytes, "image/png"),
-                imageDetailLevel: ResponseImageDetailLevel.High));
-
+                {
+                    contextImages.Add(ResponseContentPart.CreateInputImagePart(BinaryData.FromBytes(fileBytes, "image/png"),
+        imageDetailLevel: ResponseImageDetailLevel.High));
+                }
             }
-            CreateResponseOptions format = new CreateResponseOptions()
+                CreateResponseOptions format = new CreateResponseOptions()
             {
                 Model = "gpt-5.1",
                 TextOptions = new ResponseTextOptions
@@ -80,15 +91,14 @@ namespace spGenerator
                     ""properties"": {
                         ""SiteOverview"":      { ""type"": ""string"" },
                         ""RecommendedLayout"": { ""type"": ""string"" },
-                        ""VolunteerFlow"":     { ""type"": ""string"" },
-                        ""SupplyFlow"":        { ""type"": ""string"" },
+                        
                         ""Timeline"":          { ""type"": ""string"" },
                         ""Risks"":             { ""type"": ""string"" },
                         ""PMReviewChecklist"": { ""type"": ""string"" },
                         ""ImageInstruction"" : { ""type"": ""string"" }
 
                 },
-                ""required"": [""SiteOverview"",""RecommendedLayout"",""VolunteerFlow"",""SupplyFlow"",""Timeline"",""Risks"",""PMReviewChecklist"", ""ImageInstruction""],
+                ""required"": [""SiteOverview"",""RecommendedLayout"",""Timeline"",""Risks"",""PMReviewChecklist"", ""ImageInstruction""],
                 ""additionalProperties"": false
             }"),
             jsonSchemaIsStrict: true)
@@ -117,29 +127,71 @@ namespace spGenerator
 
             //Use result in image edit
             string editPrompt = "I have a blueprint already drafted using the following instructions that you should also adhere to" + imageInstructions + " . I want to make the following edits to (please be specific about changing what I ask and not other things unless associated " + edits +
-                                ". The output image should have dimensions that are proportionally scaled of the venue's room dimensions listed here:" + reqRow.RoomDimensions;
-            GeneratedImage image = await imageClient.GenerateImageEditAsync(prompt: editPrompt, imageFilePath: Path.Combine(AppDomain.CurrentDomain.BaseDirectory, row.SiteOverview));
-            string directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints");
+                                ". The output image should have dimensions that are proportionally scaled of the venue's room dimensions listed here:" + reqRow.RoomDimensions + ". Things from the draft should carry over like Volunteer Flow (path fow volunteers to enter) and Supply Flow should be labeled with arrows";
+            GeneratedImage image;
+            //IF PDF CONVERT TO REGULAR IMAGE
+            if (row.SiteOverview != null && row.SiteOverview != "")
+            {
+                byte[] pngBytes;
 
-            string fileName = $"blueprint_{DateTime.UtcNow:yyyyMMddHHmmss}.png";
-            // turn image.ImageBytes 2 array and save the bytes as a file;
-            byte[] imageBytes = image.ImageBytes.ToArray();
-            System.IO.File.WriteAllBytes(Path.Combine(directory, fileName), imageBytes);
+                {
+                    //if pdf
+                    if (row.SiteOverview.Contains(".png") != true)
+                    {
+                        string publicProjectID = "project_public_4f29a93e98a06f34f1b40ba60a4c5000_jJzxH74a4c30d8049af15ff99d7763ef444fd";
+                        string apiKey = Environment.GetEnvironmentVariable("ILOVEPDF_KEY");
+                        var api = new iLovePdfApi(publicProjectID, apiKey);
+
+                        var taskPDFtoJPG = api.CreateTask<PdfToJpgTask>();
+                        var file1 = taskPDFtoJPG.AddFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, row.SiteOverview));
+                        taskPDFtoJPG.Process(new PdftoJpgParams { PdfJpgMode = PdfToJpgModes.Pages });
+                        var jpgBytes = await taskPDFtoJPG.DownloadFileAsByteArrayAsync();
+                        using (MemoryStream jpgStream = new MemoryStream(jpgBytes))
+                        using (Image img = Image.FromStream(jpgStream))
+                        using (MemoryStream pngStream = new MemoryStream())
+                        {
+                            img.Save(pngStream, ImageFormat.Png);
+                            pngBytes = pngStream.ToArray();
+                        }
+
+
+                    }
+                    else
+                    {
+                        string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, row.SiteOverview);
+
+                        pngBytes = File.ReadAllBytes(fullPath);
+                    }
+                }
+
+                using (MemoryStream stream = new MemoryStream(pngBytes))
+                {
+
+                    image = await imageClient.GenerateImageEditAsync(prompt: editPrompt, image: stream, imageFilename: row.SiteOverview);
+                }
+                string directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints");
+
+                string fileName = $"blueprint_{DateTime.UtcNow:yyyyMMddHHmmss}.png";
+                // turn image.ImageBytes 2 array and save the bytes as a file;
+                byte[] imageBytes = image.ImageBytes.ToArray();
+                System.IO.File.WriteAllBytes(Path.Combine(directory, fileName), imageBytes);
 
 
 
-            SitePlanDraft draft = JsonConvert.DeserializeObject<SitePlanDraft>(txt);
-            draft.SiteOverview = Path.Combine("blueprints", fileName);
-            draft.SitePlanRequestId = row.SitePlanRequestId;
-            draft.Reviewer = "Placeholder Name";
-            draft.CreatedAt = DateTime.UtcNow;
-            _db.SitePlanDrafts.Add(draft);
+                SitePlanDraft draft = JsonConvert.DeserializeObject<SitePlanDraft>(txt);
+                draft.SiteOverview = Path.Combine("blueprints", fileName);
+                draft.SitePlanRequestId = row.SitePlanRequestId;
+                draft.Reviewer = "Placeholder Name";
+                draft.CreatedAt = DateTime.UtcNow;
+                _db.SitePlanDrafts.Add(draft);
 
 
 
-            //Save draft to sql
-            _db.SaveChanges();
-            return draft;
+                //Save draft to sql
+                _db.SaveChanges();
+                return draft;
+            }
+            throw new InvalidOperationException($"No blueprint found to edit for draft {id}");
 
         }
         public async Task<SitePlanFinal> finalizeDraft(int id)

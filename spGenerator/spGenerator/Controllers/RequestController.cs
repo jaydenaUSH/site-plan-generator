@@ -39,6 +39,7 @@ namespace spGenerator.Controllers
         public async Task<IHttpActionResult> GetReqByID(int id)
         {
             if (id < 0) return BadRequest("No request to search for");
+
             try
             {
                 var res = await _services.getReq(id);

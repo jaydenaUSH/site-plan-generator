@@ -3,6 +3,9 @@ import App from '../App'
 import Past from '../Past'
 import Request from '../Request'
 import ImagePage from '../image'
+import OGBlue from '../ogBlueprint'
+
+
 
 
 const AppRoutes: React.FC = () => (
@@ -11,7 +14,7 @@ const AppRoutes: React.FC = () => (
         < Route path='/past' element={<Past />} />
         < Route path='/requests/:id' element={<Request />} />
         < Route path='/requests/:id/image' element={<ImagePage />} />
-        < Route path='/requests/:id/image' element={<ImagePage />} />
+        < Route path='/requests/:id/image/og' element={<OGBlue />} />
 
 
 

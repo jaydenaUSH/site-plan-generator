@@ -20,21 +20,22 @@ function App() {
     const [address1, setAddress1] = useState("")
     const [address2, setAddress2] = useState("")
     const [city, setCity] = useState("")
-    const [zipcode, setZipcode] = useState < number>()
+    const [zipcode, setZipcode] = useState<number>()
     const [state, setState] = useState("")
     const [country, setCountry] = useState("")
 
     const [tableSizes, setTableSizes] = useState<number>()
-    const [lineNumber, setLineNumber] = useState < number>()
+    const [lineNumber, setLineNumber] = useState<number>()
     const [roomNotes, setRoomNotes] = useState("")
     const [loadingNotes, setLoadingNotes] = useState("")
-    const [palettes, setPalettes] = useState < number>()
+    const [palettes, setPalettes] = useState<number>()
     const [clientName, setClientName] = useState("")
     const [additionalNotes, setAdditionalNotes] = useState("")
 
     const inputRef = useRef<HTMLInputElement>(null)
     const [selectedFile, setSelectedFile] = useState(null)
-    const apiBase = 'https://localhost:44306'
+    const apiBase = 'https://localhost:44306';
+
 
 
     const attachFile = (event) => {
@@ -45,12 +46,11 @@ function App() {
     }
 
     const createReq = async () => {
-        
-        const fullAddress = address1 + address2 + city + state + zipcode
+        const fullAddress = address1 + " " + address2 + " " + city + " " + state + " " + zipcode
         const response = await fetch(`${apiBase}/api/requests`, {
             headers: {
                 "Accept": "application/json", "Content-Type": "application/json",
-                 }, method: "POST", body: JSON.stringify({
+            }, method: "POST", body: JSON.stringify({
                 ClientName: clientName,
                 Deadline: date,
                 VenueName: venueName,
@@ -68,7 +68,7 @@ function App() {
         const data = await response.json();
         if (response.ok) {
             console.log("Request creted")
-        } else {console.log("Error creating request", data) }
+        } else { console.log("Error creating request", data) }
     }
 
     return (
@@ -97,7 +97,7 @@ function App() {
                                             <Input value={clientName} onInput={(e) => setClientName(e.target.value)} />
 
                                         </Field>
-                                        
+
                                         <Field>
                                             <FieldTitle>Project Date</FieldTitle>
                                             <Popover>
@@ -186,7 +186,7 @@ function App() {
                                                 <Input placeholder="Ex: 10,6" value={tableSizes} onInput={(e) => setTableSizes(e.target.value)} />
                                             </div>
 
-                                          
+
                                         </FieldGroup>
 
                                     </AccordionContent>
@@ -197,7 +197,7 @@ function App() {
                                 <AccordionItem >
                                     <AccordionTrigger> Notes</AccordionTrigger>
                                     <AccordionContent>
-                                       
+
                                         <Field>
                                             <FieldTitle>Room Dimensions</FieldTitle>
                                             <Input placeholder="Ex: 10x10 or Half circle with a 100ft diameter" value={roomNotes} onInput={(e) => setRoomNotes(e.target.value)} />
@@ -216,7 +216,7 @@ function App() {
                                             <div className="flex flex-row w-full items-center gap-10 mr-5">
                                                 <Button className='max-w-[25%] bg-accent' onClick={() => {
                                                     inputRef.current.click()
-                                                } }><Upload/>Upload Venue Floor Plan</Button>
+                                                }}><Upload />Upload Venue Floor Plan</Button>
                                                 <p className='mr-5'>(JPEG, JPG, PNG, PDF)</p>
                                                 <input type="file" ref={inputRef} accept=".jpeg, .jpg, .png, .pdf" onChange={attachFile} className="hidden" />
 
@@ -230,7 +230,10 @@ function App() {
                     </Accordion>
                 </div>
                 <div className="flex items-center justify-center pt-15">
-                    <Button className="bg-primary mb-5" onClick={() => {createReq() } }>Generate Blueprint</Button>
+                    <Button className="bg-primary mb-5" onClick={() => {
+                        createReq()
+                        //Add the selected filed into the blueprints folder
+                    }}>Generate Blueprint</Button>
 
                 </div>
 

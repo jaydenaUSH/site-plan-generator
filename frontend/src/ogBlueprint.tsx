@@ -3,18 +3,18 @@ import Sidebar from "./sidebar"
 import { useParams } from 'react-router-dom'
 import { useEffect, useState } from 'react'
  
-function ImagePage() {
+function OGBlue() {
     const { id } = useParams()
     const apiBase = 'https://localhost:44306'
     const [imageURL,setImageURL] = useState('')
 
     const getImageURL = async () => {
-        const response = await fetch(apiBase + `/api/review/${id}/draft`, { headers: { "Accept": 'application/json' }, method: 'GET' });
+        const response = await fetch(apiBase + `/api/requests/${id}`, { headers: { "Accept": 'application/json' }, method: 'GET' });
         const data = await response.json();
         if (response.ok) {
-            let tmp = apiBase +"/"+ data.SiteOverview
+            let tmp = apiBase + "/blueprints/" + data.RoomBlueprintFilePath;
             setImageURL(tmp)
-    console.log(tmp)}
+            console.log(data.RoomBlueprintFilePath)}
     else {
         console.log("Error retrieving image URL")
     }
@@ -33,11 +33,15 @@ function ImagePage() {
                 <div className="w-full flex flex-row justify-center border-b-1 relative items-center mb-5">
                     <h2>Blueprint</h2>
                 </div>
-                {imageURL && <img src={imageURL} />} {/*Change src to imageURL */}
-
+                <embed
+                    src={imageURL}
+                    type="application/pdf"
+                    width="100%"
+                    height="600px"
+                />
             </main>
         </div>
     )
 }
 
-export default ImagePage;
+export default OGBlue;

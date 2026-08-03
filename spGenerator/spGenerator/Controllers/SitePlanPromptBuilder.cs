@@ -13,30 +13,32 @@ using System.Web.Script.Services;
 using System.IO;
 using Newtonsoft.Json.Linq;
 using System.CodeDom.Compiler;
-namespace spGenerator.Controllers{
+namespace spGenerator.Controllers
+{
     [RoutePrefix("api/prompt")]
 
-    public class SitePlanPromptBuilderController: ApiController
+    public class SitePlanPromptBuilderController : ApiController
     {
         private readonly SitePlanPromptServices _services;
         public SitePlanPromptBuilderController()
         {
             _services = new SitePlanPromptServices();
 
-        }       
-       
+        }
+
 
         [HttpPost]
         [Route("")]
         public async Task<IHttpActionResult> askAI(SitePlanRequest req)
         {
-            if (req==null) return BadRequest("The details for the site plan venue request could not be found");
+            if (req == null) return BadRequest("The details for the site plan venue request could not be found");
             try
             {
                 var results = await _services.askAI(req);
                 return Ok(results);
 
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }

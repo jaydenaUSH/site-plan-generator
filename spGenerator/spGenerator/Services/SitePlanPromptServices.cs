@@ -1,4 +1,9 @@
 ﻿
+using iLovePdf;
+using iLovePdf.Core;
+using iLovePdf.Model.Enums;
+using iLovePdf.Model.Task;
+using iLovePdf.Model.TaskParams;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -11,6 +16,8 @@ using System.Data.Entity.Core.Common.CommandTrees.ExpressionBuilder;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
+using System.Drawing;
+using System.Drawing.Imaging;
 
 namespace spGenerator
 {
@@ -69,6 +76,8 @@ namespace spGenerator
 
         public async Task<SitePlanDraft> askAI(SitePlanRequest req)
         {
+
+
 #pragma warning disable OPENAI001
             //Prepare context from folder
             var contextImages = new List<ResponseContentPart>();
@@ -79,14 +88,18 @@ namespace spGenerator
                 byte[] fileBytes = File.ReadAllBytes(file);
                 if (Path.GetExtension(file).ToLower() == ".pdf")
                 {
-                    contextImages.Add(ResponseContentPart.CreateInputImagePart(
+                    contextImages.Add(ResponseContentPart.CreateInputFilePart(
                         BinaryData.FromBytes(fileBytes, "application/pdf"),
-                        imageDetailLevel: ResponseImageDetailLevel.High));
+                            "application/pdf",
+                               Path.GetFileName(file)
+                        ));
                 }
+                else
 
-                contextImages.Add(ResponseContentPart.CreateInputImagePart(BinaryData.FromBytes(fileBytes, "image/png"),
+                {
+                    contextImages.Add(ResponseContentPart.CreateInputImagePart(BinaryData.FromBytes(fileBytes, "image/png"),
         imageDetailLevel: ResponseImageDetailLevel.High));
-
+                }
             }
             // Create the format and options for Responses API call
             CreateResponseOptions format = new CreateResponseOptions()
@@ -134,10 +147,45 @@ namespace spGenerator
             var imageInstructions = (string)JObject.Parse(txt)["ImageInstruction"];
             //Use blueprint if given one, resort to making from scratch otherwise
             GeneratedImage image;
+            //IF PDF CONVERT TO REGULAR IMAGE
+
             if (req.RoomBlueprintFilePath != null && req.RoomBlueprintFilePath != "")
             {
-                image = await imageClient.GenerateImageEditAsync(imageFilePath: Path.Combine(AppDomain.CurrentDomain.BaseDirectory, req.RoomBlueprintFilePath), prompt: GeneratePrompt(req, null, true, "", imageInstructions));
+                byte[] pngBytes;
+                {
+                    //if pdf
+                    if (req.RoomBlueprintFilePath.Contains(".png") != true)
+                    {
+                        string publicProjectID = "project_public_4f29a93e98a06f34f1b40ba60a4c5000_jJzxH74a4c30d8049af15ff99d7763ef444fd";
+                        string apiKey = Environment.GetEnvironmentVariable("ILOVEPDF_KEY");
+                        var api = new iLovePdfApi(publicProjectID, apiKey);
 
+                        var taskPDFtoJPG = api.CreateTask<PdfToJpgTask>();
+                        var file1 = taskPDFtoJPG.AddFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints", req.RoomBlueprintFilePath));
+                        taskPDFtoJPG.Process(new PdftoJpgParams { PdfJpgMode = PdfToJpgModes.Pages });
+                        var jpgBytes = await taskPDFtoJPG.DownloadFileAsByteArrayAsync();
+                        using (MemoryStream jpgStream = new MemoryStream(jpgBytes))
+                        using (Image img = Image.FromStream(jpgStream))
+                        using (MemoryStream pngStream = new MemoryStream())
+                        {
+                            img.Save(pngStream, ImageFormat.Png);
+                            pngBytes = pngStream.ToArray();
+                        }
+
+
+                    }
+                    else
+                    {
+                        string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints", req.RoomBlueprintFilePath);
+
+                        pngBytes = File.ReadAllBytes(fullPath);
+                    }
+                }
+                using (MemoryStream stream = new MemoryStream(pngBytes))
+                {
+
+                    image = await imageClient.GenerateImageEditAsync(image: stream, "blueprint" + req.RoomBlueprintFilePath, prompt: GeneratePrompt(req, null, true, "", imageInstructions));
+                }
             }
             else
             {

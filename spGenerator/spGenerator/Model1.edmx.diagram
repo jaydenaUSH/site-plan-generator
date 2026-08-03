@@ -8,11 +8,11 @@
         <EntityTypeShape EntityType="SitePlanAIPOCModel.ReferenceDocument" Width="1.5" PointX="2.75" PointY="0.75" IsExpanded="true" />
         <EntityTypeShape EntityType="SitePlanAIPOCModel.SitePlanDraft" Width="1.5" PointX="5.25" PointY="5.5" IsExpanded="true" />
         <EntityTypeShape EntityType="SitePlanAIPOCModel.SitePlanFinal" Width="1.5" PointX="3" PointY="7.625" IsExpanded="true" />
-        <EntityTypeShape EntityType="SitePlanAIPOCModel.SitePlanRequest" Width="1.5" PointX="0.75" PointY="3.125" IsExpanded="true" />
         <AssociationConnector Association="SitePlanAIPOCModel.FK__SitePlanD__final__5535A963" ManuallyRouted="false" />
-        <AssociationConnector Association="SitePlanAIPOCModel.FK__SitePlanD__SiteP__5629CD9C" ManuallyRouted="false" />
-        <AssociationConnector Association="SitePlanAIPOCModel.FK__SitePlanF__SiteP__5165187F" ManuallyRouted="false" />
-      </Diagram>
+        <EntityTypeShape EntityType="SitePlanAIPOCModel.SitePlanRequest" Width="1.5" PointX="0.75" PointY="6.5" />
+        <AssociationConnector Association="SitePlanAIPOCModel.FK__SitePlanD__SiteP__5629CD9C" />
+        <AssociationConnector Association="SitePlanAIPOCModel.FK__SitePlanF__SiteP__5165187F" />
+        </Diagram>
     </edmx:Diagrams>
   </edmx:Designer>
 </edmx:Edmx>

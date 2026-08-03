@@ -4,7 +4,7 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="SitePlanAIPOCModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+    <Schema Namespace="SitePlanAIPOCModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityType Name="ReferenceDocument">
           <Key>
             <PropertyRef Name="Id" />
@@ -62,7 +62,6 @@
           <Property Name="RoomDimensions" Type="nvarchar(max)" />
           <Property Name="LoadingNotes" Type="nvarchar(max)" />
           <Property Name="Deadline" Type="datetime" />
-          <Property Name="SpecialConstraints" Type="nvarchar(max)" />
           <Property Name="AdditionalNotes" Type="nvarchar(max)" />
           <Property Name="RoomBlueprintFilePath" Type="nvarchar" MaxLength="500" />
           <Property Name="CreatedAtUtc" Type="datetime" />
@@ -124,8 +123,7 @@
             <End Role="SitePlanFinal" EntitySet="SitePlanFinal" />
           </AssociationSet>
         </EntityContainer>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="SitePlanAIPOCModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -158,7 +156,7 @@
           <Property Name="AdditionalNotes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="finalVersion" Type="Int32" />
           <NavigationProperty Name="SitePlanFinal" Relationship="Self.FK__SitePlanD__final__5535A963" FromRole="SitePlanDraft" ToRole="SitePlanFinal" />
-          <NavigationProperty Name="SitePlanRequest" Relationship="Self.FK__SitePlanD__SiteP__5629CD9C" FromRole="SitePlanDraft" ToRole="SitePlanRequest" />
+          <NavigationProperty Name="SitePlanRequest" Relationship="SitePlanAIPOCModel.FK__SitePlanD__SiteP__5629CD9C" FromRole="SitePlanDraft" ToRole="SitePlanRequest" />
         </EntityType>
         <EntityType Name="SitePlanFinal">
           <Key>
@@ -177,28 +175,7 @@
           <Property Name="AdditionalNotes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
           <Property Name="ApprovedAt" Type="DateTime" Precision="3" />
           <NavigationProperty Name="SitePlanDrafts" Relationship="Self.FK__SitePlanD__final__5535A963" FromRole="SitePlanFinal" ToRole="SitePlanDraft" />
-          <NavigationProperty Name="SitePlanRequest" Relationship="Self.FK__SitePlanF__SiteP__5165187F" FromRole="SitePlanFinal" ToRole="SitePlanRequest" />
-        </EntityType>
-        <EntityType Name="SitePlanRequest">
-          <Key>
-            <PropertyRef Name="Id" />
-          </Key>
-          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
-          <Property Name="VenueName" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="VenueAddress" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="NumberofLines" Type="Int32" />
-          <Property Name="RoomDimensions" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="LoadingNotes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="Deadline" Type="DateTime" Precision="3" />
-          <Property Name="SpecialConstraints" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="AdditionalNotes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
-          <Property Name="RoomBlueprintFilePath" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="CreatedAtUtc" Type="DateTime" Precision="3" />
-          <Property Name="NumberofPalettes" Type="Int32" />
-          <Property Name="ClientName" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
-          <Property Name="TableSizes" Type="Int32" />
-          <NavigationProperty Name="SitePlanDrafts" Relationship="Self.FK__SitePlanD__SiteP__5629CD9C" FromRole="SitePlanRequest" ToRole="SitePlanDraft" />
-          <NavigationProperty Name="SitePlanFinals" Relationship="Self.FK__SitePlanF__SiteP__5165187F" FromRole="SitePlanRequest" ToRole="SitePlanFinal" />
+          <NavigationProperty Name="SitePlanRequest" Relationship="SitePlanAIPOCModel.FK__SitePlanF__SiteP__5165187F" FromRole="SitePlanFinal" ToRole="SitePlanRequest" />
         </EntityType>
         <Association Name="FK__SitePlanD__final__5535A963">
           <End Role="SitePlanFinal" Type="Self.SitePlanFinal" Multiplicity="0..1" />
@@ -212,9 +189,47 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
+        <EntityContainer Name="SitePlanAIPOCEntities1" annotation:LazyLoadingEnabled="true">
+          <EntitySet Name="ReferenceDocuments" EntityType="Self.ReferenceDocument" />
+          <EntitySet Name="SitePlanDrafts" EntityType="Self.SitePlanDraft" />
+          <EntitySet Name="SitePlanFinals" EntityType="Self.SitePlanFinal" />
+          <AssociationSet Name="FK__SitePlanD__final__5535A963" Association="Self.FK__SitePlanD__final__5535A963">
+            <End Role="SitePlanFinal" EntitySet="SitePlanFinals" />
+            <End Role="SitePlanDraft" EntitySet="SitePlanDrafts" />
+          </AssociationSet>
+          <EntitySet Name="SitePlanRequests" EntityType="SitePlanAIPOCModel.SitePlanRequest" />
+          <AssociationSet Name="FK__SitePlanD__SiteP__5629CD9C" Association="SitePlanAIPOCModel.FK__SitePlanD__SiteP__5629CD9C">
+            <End Role="SitePlanRequest" EntitySet="SitePlanRequests" />
+            <End Role="SitePlanDraft" EntitySet="SitePlanDrafts" />
+          </AssociationSet>
+          <AssociationSet Name="FK__SitePlanF__SiteP__5165187F" Association="SitePlanAIPOCModel.FK__SitePlanF__SiteP__5165187F">
+            <End Role="SitePlanRequest" EntitySet="SitePlanRequests" />
+            <End Role="SitePlanFinal" EntitySet="SitePlanFinals" />
+          </AssociationSet>
+          </EntityContainer>
+        <EntityType Name="SitePlanRequest">
+          <Key>
+            <PropertyRef Name="Id" />
+          </Key>
+          <Property Name="Id" Type="Int32" Nullable="false" annotation:StoreGeneratedPattern="Identity" />
+          <Property Name="VenueName" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="VenueAddress" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="NumberofLines" Type="Int32" />
+          <Property Name="RoomDimensions" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="LoadingNotes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="Deadline" Type="DateTime" Precision="3" />
+          <Property Name="AdditionalNotes" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+          <Property Name="RoomBlueprintFilePath" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="CreatedAtUtc" Type="DateTime" Precision="3" />
+          <Property Name="NumberofPalettes" Type="Int32" />
+          <Property Name="ClientName" Type="String" MaxLength="500" FixedLength="false" Unicode="true" />
+          <Property Name="TableSizes" Type="Int32" />
+          <NavigationProperty Name="SitePlanDrafts" Relationship="SitePlanAIPOCModel.FK__SitePlanD__SiteP__5629CD9C" FromRole="SitePlanRequest" ToRole="SitePlanDraft" />
+          <NavigationProperty Name="SitePlanFinals" Relationship="SitePlanAIPOCModel.FK__SitePlanF__SiteP__5165187F" FromRole="SitePlanRequest" ToRole="SitePlanFinal" />
+        </EntityType>
         <Association Name="FK__SitePlanD__SiteP__5629CD9C">
-          <End Role="SitePlanRequest" Type="Self.SitePlanRequest" Multiplicity="1" />
-          <End Role="SitePlanDraft" Type="Self.SitePlanDraft" Multiplicity="*" />
+          <End Type="SitePlanAIPOCModel.SitePlanRequest" Role="SitePlanRequest" Multiplicity="1" />
+          <End Type="SitePlanAIPOCModel.SitePlanDraft" Role="SitePlanDraft" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="SitePlanRequest">
               <PropertyRef Name="Id" />
@@ -225,8 +240,8 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK__SitePlanF__SiteP__5165187F">
-          <End Role="SitePlanRequest" Type="Self.SitePlanRequest" Multiplicity="1" />
-          <End Role="SitePlanFinal" Type="Self.SitePlanFinal" Multiplicity="*" />
+          <End Type="SitePlanAIPOCModel.SitePlanRequest" Role="SitePlanRequest" Multiplicity="1" />
+          <End Type="SitePlanAIPOCModel.SitePlanFinal" Role="SitePlanFinal" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="SitePlanRequest">
               <PropertyRef Name="Id" />
@@ -236,24 +251,6 @@
             </Dependent>
           </ReferentialConstraint>
         </Association>
-        <EntityContainer Name="SitePlanAIPOCEntities1" annotation:LazyLoadingEnabled="true">
-          <EntitySet Name="ReferenceDocuments" EntityType="Self.ReferenceDocument" />
-          <EntitySet Name="SitePlanDrafts" EntityType="Self.SitePlanDraft" />
-          <EntitySet Name="SitePlanFinals" EntityType="Self.SitePlanFinal" />
-          <EntitySet Name="SitePlanRequests" EntityType="Self.SitePlanRequest" />
-          <AssociationSet Name="FK__SitePlanD__final__5535A963" Association="Self.FK__SitePlanD__final__5535A963">
-            <End Role="SitePlanFinal" EntitySet="SitePlanFinals" />
-            <End Role="SitePlanDraft" EntitySet="SitePlanDrafts" />
-          </AssociationSet>
-          <AssociationSet Name="FK__SitePlanD__SiteP__5629CD9C" Association="Self.FK__SitePlanD__SiteP__5629CD9C">
-            <End Role="SitePlanRequest" EntitySet="SitePlanRequests" />
-            <End Role="SitePlanDraft" EntitySet="SitePlanDrafts" />
-          </AssociationSet>
-          <AssociationSet Name="FK__SitePlanF__SiteP__5165187F" Association="Self.FK__SitePlanF__SiteP__5165187F">
-            <End Role="SitePlanRequest" EntitySet="SitePlanRequests" />
-            <End Role="SitePlanFinal" EntitySet="SitePlanFinals" />
-          </AssociationSet>
-        </EntityContainer>
       </Schema>
     </edmx:ConceptualModels>
     <!-- C-S mapping content -->
@@ -312,20 +309,19 @@
           <EntitySetMapping Name="SitePlanRequests">
             <EntityTypeMapping TypeName="SitePlanAIPOCModel.SitePlanRequest">
               <MappingFragment StoreEntitySet="SitePlanRequest">
-                <ScalarProperty Name="Id" ColumnName="Id" />
-                <ScalarProperty Name="VenueName" ColumnName="VenueName" />
-                <ScalarProperty Name="VenueAddress" ColumnName="VenueAddress" />
-                <ScalarProperty Name="NumberofLines" ColumnName="NumberofLines" />
-                <ScalarProperty Name="RoomDimensions" ColumnName="RoomDimensions" />
-                <ScalarProperty Name="LoadingNotes" ColumnName="LoadingNotes" />
-                <ScalarProperty Name="Deadline" ColumnName="Deadline" />
-                <ScalarProperty Name="SpecialConstraints" ColumnName="SpecialConstraints" />
-                <ScalarProperty Name="AdditionalNotes" ColumnName="AdditionalNotes" />
-                <ScalarProperty Name="RoomBlueprintFilePath" ColumnName="RoomBlueprintFilePath" />
-                <ScalarProperty Name="CreatedAtUtc" ColumnName="CreatedAtUtc" />
-                <ScalarProperty Name="NumberofPalettes" ColumnName="NumberofPalettes" />
-                <ScalarProperty Name="ClientName" ColumnName="ClientName" />
                 <ScalarProperty Name="TableSizes" ColumnName="TableSizes" />
+                <ScalarProperty Name="ClientName" ColumnName="ClientName" />
+                <ScalarProperty Name="NumberofPalettes" ColumnName="NumberofPalettes" />
+                <ScalarProperty Name="CreatedAtUtc" ColumnName="CreatedAtUtc" />
+                <ScalarProperty Name="RoomBlueprintFilePath" ColumnName="RoomBlueprintFilePath" />
+                <ScalarProperty Name="AdditionalNotes" ColumnName="AdditionalNotes" />
+                <ScalarProperty Name="Deadline" ColumnName="Deadline" />
+                <ScalarProperty Name="LoadingNotes" ColumnName="LoadingNotes" />
+                <ScalarProperty Name="RoomDimensions" ColumnName="RoomDimensions" />
+                <ScalarProperty Name="NumberofLines" ColumnName="NumberofLines" />
+                <ScalarProperty Name="VenueAddress" ColumnName="VenueAddress" />
+                <ScalarProperty Name="VenueName" ColumnName="VenueName" />
+                <ScalarProperty Name="Id" ColumnName="Id" />
               </MappingFragment>
             </EntityTypeMapping>
           </EntitySetMapping>

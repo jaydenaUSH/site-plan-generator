@@ -67,8 +67,24 @@ function App() {
         })
         const data = await response.json();
         if (response.ok) {
-            console.log("Request creted")
+            console.log("Request created")
+            uploadFile();
         } else { console.log("Error creating request", data) }
+    }
+
+    const uploadFile = async () => {
+        if(!selectedFile) return
+        const fileData = new FormData(selectedFile);
+        const response = await fetch(`${apiBase}/api/requests/upload`, {
+            headers: {
+                "Accept": "application/json", "Content-Type": "application/json",
+            }, method: "POST", body: JSON.stringify(fileData)
+        })
+        if (response.ok) {
+            console.log("File successfully uploaded")
+        } else {
+            console.log("Error uploading file")
+        }
     }
 
     return (
@@ -217,6 +233,7 @@ function App() {
                                                 <Button className='max-w-[25%] bg-accent' onClick={() => {
                                                     inputRef.current.click()
                                                 }}><Upload />Upload Venue Floor Plan</Button>
+                                                {selectedFile ? (<p>{selected}</p>):(<p>No file selected</p>) }
                                                 <p className='mr-5'>(JPEG, JPG, PNG, PDF)</p>
                                                 <input type="file" ref={inputRef} accept=".jpeg, .jpg, .png, .pdf" onChange={attachFile} className="hidden" />
 

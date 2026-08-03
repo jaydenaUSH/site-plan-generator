@@ -1,6 +1,8 @@
 ﻿
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Data.Entity;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -39,6 +41,16 @@ namespace spGenerator
         public async Task<dynamic> getAllReqs()
         {
             return await _db.SitePlanRequests.OrderByDescending(w => w.Deadline).ToListAsync();
+        }
+        public async Task<dynamic> uploadFile(IFormFile file)
+        {
+            var filePath  = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints", "ogInput", file.FileName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            return "File sucessfully uploaded";
         }
     }
 }

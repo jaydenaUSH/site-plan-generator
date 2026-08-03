@@ -28,7 +28,6 @@ namespace spGenerator
         public string RoomDimensions { get; set; }
         public string LoadingNotes { get; set; }
         public Nullable<System.DateTime> Deadline { get; set; }
-        public string SpecialConstraints { get; set; }
         public string AdditionalNotes { get; set; }
         public string RoomBlueprintFilePath { get; set; }
         public Nullable<System.DateTime> CreatedAtUtc { get; set; }

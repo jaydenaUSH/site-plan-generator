@@ -2,8 +2,8 @@ using spGenerator;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Web;
 using System.Web.Http;
-using Microsoft.AspNetCore.Http;
 
 namespace spGenerator.Controllers
 {
@@ -79,8 +79,10 @@ namespace spGenerator.Controllers
         }
         [HttpPost]
         [Route("uploadFile")]
-        public async Task<IHttpActionResult> uploadFile([FromBody]IFormFile file)
+        public async Task<IHttpActionResult> uploadFile()
         {
+            var file = HttpContext.Current.Request.Files["file"];
+
             if (file == null) return BadRequest("No file attatched");
             var res = await _services.uploadFile(file);
             return Ok(res);

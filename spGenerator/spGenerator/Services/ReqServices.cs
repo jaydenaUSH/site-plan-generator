@@ -5,6 +5,7 @@ using System.Data.Entity;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace spGenerator
 {
@@ -42,12 +43,12 @@ namespace spGenerator
         {
             return await _db.SitePlanRequests.OrderByDescending(w => w.Deadline).ToListAsync();
         }
-        public async Task<dynamic> uploadFile(IFormFile file)
+        public async Task<dynamic> uploadFile(HttpPostedFile file)
         {
-            var filePath  = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints", "ogInput", file.FileName);
+            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints", "ogInput", Path.GetFileName(file.FileName));
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
-                await file.CopyToAsync(stream);
+                await file.InputStream.CopyToAsync(stream);
             }
 
             return "File sucessfully uploaded";

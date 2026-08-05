@@ -68,7 +68,7 @@ function App() {
         const data = await response.json();
         if (response.ok) {
             console.log("Request created")
-            uploadFile();
+            uploadFile();   
         } else { console.log("Error creating request", data) }
     }
 

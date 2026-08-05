@@ -49,9 +49,9 @@ namespace spGenerator
 
             }
             prompt.Append("Notes to consider: assembly line tables are usually 6 or 8 ft long by 2.5 ft wide unless otherwise stated below by the attribute Table Sizes. If you consider the setup as a grid, the standard setup has a 5 ft gap between rows and 10 ft between columns.\n");
-            if (!image) { prompt.Append("Here are some images showing a template for making blueprints and past created blueprints for context as you make the new ones. Make instructions so other models who can't see the templates can make new blueprints that adhere to the template" + context); }
+            if (!image) { prompt.Append(" The attached context contains BEFORE and AFTER examples. Files with the same filename represent the same venue before and after drafting. Learn the transformation shown by each matching pair and apply it to the current venue. Make instructions so other models who can't see the images can make new blueprints similar" + context); }
             else { prompt.Append("Use these guidelines " + context); }
-            prompt.Append("The size of the document generated must proportionally scale the dimensions of the site the attribute Room Dimensions. Attached below is a json object with information and notes about the site to consider while creating the venue. The Volunteer Flow (path fow volunteers to enter) and Supply Flow should be labeled with arrows");
+            prompt.Append("The size of the document generated must proportionally scale the dimensions of the site the attribute Room Dimensions. Attached below is a json object with information and notes about the site to consider while creating the venue. The Volunteer Flow (path for volunteers to enter) and Supply Flow should be labeled with arrows");
             if (req != null)
             {
                 prompt.Append(JsonConvert.SerializeObject(req));
@@ -74,6 +74,8 @@ namespace spGenerator
             return prompt.ToString();
         }
 
+        
+
         public async Task<SitePlanDraft> askAI(SitePlanRequest req)
         {
 
@@ -81,11 +83,38 @@ namespace spGenerator
 #pragma warning disable OPENAI001
             //Prepare context from folder
             var contextImages = new List<ResponseContentPart>();
-            string folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "context");
-            var files = Directory.GetFiles(folder);
-            foreach (string file in files)
+            string beforeFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "context", "before");
+            string afterFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "context", "after");
+            var beforefiles = Directory.GetFiles(beforeFolder);
+            var afterFiles = Directory.GetFiles(afterFolder);
+
+            foreach (string file in beforefiles)
             {
                 byte[] fileBytes = File.ReadAllBytes(file);
+                contextImages.Add(ResponseContentPart.CreateInputTextPart(
+                        "Before example " + Path.GetFileName(file)));
+                if (Path.GetExtension(file).ToLower() == ".pdf")
+                    
+                {
+                    
+                    contextImages.Add(ResponseContentPart.CreateInputFilePart(
+                        BinaryData.FromBytes(fileBytes, "application/pdf"),
+                            "application/pdf",
+                               Path.GetFileName(file)
+                        ));
+                }
+                else
+
+                {
+                    contextImages.Add(ResponseContentPart.CreateInputImagePart(BinaryData.FromBytes(fileBytes, "image/png"),
+        imageDetailLevel: ResponseImageDetailLevel.High));
+                }
+            }
+            foreach (string file in afterFiles)
+            {
+                byte[] fileBytes = File.ReadAllBytes(file);
+                contextImages.Add(ResponseContentPart.CreateInputTextPart(
+                        "After example " + Path.GetFileName(file)));
                 if (Path.GetExtension(file).ToLower() == ".pdf")
                 {
                     contextImages.Add(ResponseContentPart.CreateInputFilePart(
@@ -105,7 +134,6 @@ namespace spGenerator
             CreateResponseOptions format = new CreateResponseOptions()
             {
                 Model = "gpt-5.1",
-                Instructions = GeneratePrompt(req, null, false, "", ""),
                 TextOptions = new ResponseTextOptions
                 {
                     TextFormat = ResponseTextFormat.CreateJsonSchemaFormat(
@@ -161,7 +189,7 @@ namespace spGenerator
                         var api = new iLovePdfApi(publicProjectID, apiKey);
 
                         var taskPDFtoJPG = api.CreateTask<PdfToJpgTask>();
-                        var file1 = taskPDFtoJPG.AddFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints", req.RoomBlueprintFilePath));
+                        var file1 = taskPDFtoJPG.AddFile(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints", "ogInput", req.RoomBlueprintFilePath));
                         taskPDFtoJPG.Process(new PdftoJpgParams { PdfJpgMode = PdfToJpgModes.Pages });
                         var jpgBytes = await taskPDFtoJPG.DownloadFileAsByteArrayAsync();
                         using (MemoryStream jpgStream = new MemoryStream(jpgBytes))
@@ -176,7 +204,7 @@ namespace spGenerator
                     }
                     else
                     {
-                        string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints", req.RoomBlueprintFilePath);
+                        string fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints", "ogInput", req.RoomBlueprintFilePath);
 
                         pngBytes = File.ReadAllBytes(fullPath);
                     }

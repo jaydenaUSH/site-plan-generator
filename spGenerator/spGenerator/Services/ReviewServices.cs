@@ -59,11 +59,16 @@ namespace spGenerator
 #pragma warning disable OPENAI001
             //Prepare context from folder
             var contextImages = new List<ResponseContentPart>();
-            string folder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "context");
-            var files = Directory.GetFiles(folder);
-            foreach (string file in files)
+            string beforeFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "context", "before");
+            string afterFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "context", "after");
+
+            var beforefiles = Directory.GetFiles(beforeFolder);
+            var afterFiles = Directory.GetFiles(afterFolder); 
+            foreach (string file in beforefiles)
             {
                 byte[] fileBytes = File.ReadAllBytes(file);
+                contextImages.Add(ResponseContentPart.CreateInputTextPart(
+                        "Before example " + Path.GetFileName(file)));
                 if (Path.GetExtension(file).ToLower() == ".pdf")
                 {
                     contextImages.Add(ResponseContentPart.CreateInputFilePart(
@@ -79,7 +84,27 @@ namespace spGenerator
         imageDetailLevel: ResponseImageDetailLevel.High));
                 }
             }
-                CreateResponseOptions format = new CreateResponseOptions()
+            foreach (string file in afterFiles)
+            {
+                byte[] fileBytes = File.ReadAllBytes(file);
+                contextImages.Add(ResponseContentPart.CreateInputTextPart(
+                        "After example " + Path.GetFileName(file)));
+                if (Path.GetExtension(file).ToLower() == ".pdf")
+                {
+                    contextImages.Add(ResponseContentPart.CreateInputFilePart(
+                        BinaryData.FromBytes(fileBytes, "application/pdf"),
+                            "application/pdf",
+                               Path.GetFileName(file)
+                        ));
+                }
+                else
+
+                {
+                    contextImages.Add(ResponseContentPart.CreateInputImagePart(BinaryData.FromBytes(fileBytes, "image/png"),
+        imageDetailLevel: ResponseImageDetailLevel.High));
+                }
+            }
+            CreateResponseOptions format = new CreateResponseOptions()
             {
                 Model = "gpt-5.1",
                 TextOptions = new ResponseTextOptions

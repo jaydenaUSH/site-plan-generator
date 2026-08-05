@@ -234,7 +234,7 @@ function App() {
                                                 <Button className='max-w-[25%] bg-accent' onClick={() => {
                                                     inputRef.current.click()
                                                 }}><Upload />Upload Venue Floor Plan</Button>
-                                                {selectedFile ? (<p>{selectedFile}</p>) : (<p>No file selected</p>)}
+                                                {selectedFile ? (<p>{selectedFile.name}</p>) : (<p>No file selected</p>)}
                                                 <p className='mr-5'>(JPEG, JPG, PNG, PDF)</p>
                                                 <input type="file" ref={inputRef} accept=".jpeg, .jpg, .png, .pdf" onChange={attachFile} className="hidden" />
 

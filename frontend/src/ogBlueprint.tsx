@@ -12,7 +12,7 @@ function OGBlue() {
         const response = await fetch(apiBase + `/api/requests/${id}`, { headers: { "Accept": 'application/json' }, method: 'GET' });
         const data = await response.json();
         if (response.ok) {
-            let tmp = apiBase + "/blueprints/ogInput" + data.RoomBlueprintFilePath;
+            let tmp = apiBase + "/blueprints/ogInput/" + data.RoomBlueprintFilePath;
             setImageURL(tmp)
             console.log(data.RoomBlueprintFilePath)
         }

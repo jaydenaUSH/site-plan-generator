@@ -29,7 +29,7 @@ function Past() {
                 <Sidebar />
             </aside>
             <main className="flex-col flex-1  justify-center px-5">
-                <h1 className='text-accent!'>View Past Drafts</h1>
+                <h1 className='text-accent!'>View All Venues</h1>
                 {drafts.length>0 && (
                     <div className= 'grid grid-cols-4 gap-5 '>
                         {drafts.map((draft) => (
@@ -37,7 +37,8 @@ function Past() {
                                 <Card className='cursor-pointer' onClick={() => {
                                     navigator(`/requests/${draft.Id}`)
                                 }}>
-                                    <CardHeader><CardTitle className="font-semibold">Client Name</CardTitle>
+                                <div className="w-full p-0! h-[1vh] bg-primary -mt-6!"></div>
+                                    <CardHeader><CardTitle className="font-semibold">{draft.ClientName || "Client Name"}</CardTitle>
                                     <CardDescription>{draft.Deadline.slice(0,10)}</CardDescription>
                                     </CardHeader>
                                     <CardContent>

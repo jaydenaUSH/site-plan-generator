@@ -4,15 +4,19 @@ function Sidebar() {
         <div className="flex w-full border-r-1 flex-col bg-primary h-full px-2 text-white py-10">
             <div>
                 <Link to='/'>
-                    <h3>US Hunger</h3>
+                    <h2 className= "text-white!">US Hunger</h2>
                 </Link>
             </div>
-            <div className="py-10 flex-col gap-12">
-                <Link to='/Past'>
-                    <p>Past</p>
+            <div className="py-10 flex-col flex gap-[10%]">
+                <Link to='/' >
+                    <h3>New Draft</h3>
                 </Link>
-                <p>Finalized Drafts</p>
-                <p>SidebarItem</p></div>
+                <Link to='/Past'>
+                    <p>Existing Venues</p>
+                </Link>
+                <p>Finalized Drafts (soon)</p>
+
+            </div>
 
 
         </div>

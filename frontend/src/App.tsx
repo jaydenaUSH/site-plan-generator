@@ -4,7 +4,7 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './
 import { Field, FieldSet, FieldGroup, FieldTitle } from './components/ui/field'
 import { Input } from './components/ui/input'
 import { format } from "date-fns"
-import { ChevronDownIcon, Upload } from "lucide-react"
+import { ChevronDownIcon, Upload, Building2, Hash,NotebookTabs } from "lucide-react"
 import { Calendar } from "./components/ui/calendar"
 import {
     Popover,
@@ -93,23 +93,26 @@ function App() {
             <aside className="max-w-[15%] left-0 sticky top-0 h-screen">
                 <Sidebar />
             </aside>
-            <main className="flex-col flex-1  justify-center px-5">
-                <div className="w-full flex flex-row justify-center border-b-1 relative items-center mb-5">
+            <main className="flex-col flex-1  justify-center px-5 w-[85%]">
+                <div className="w-full flex flex-row justify-center border-b-1 relative mb-5">
 
-                    <div className="flex items-center text-center justify-center w-full">
+                    <div className="flex  text-center justify-center w-3/4">
                         <h1 className="!text-accent">Site Plan Generator</h1>
                     </div>
                 </div>
-                <p>You can enter information about any venue below to generate a draft site plan</p>
+                <div className="mb-5 ">
+                    <p className="mb-5">You can enter information about any venue below to generate a draft site plan</p>
+
+                </div>
                 {/*Enter site plan request details*/}
-                <div>
-                    <Accordion className="flex  justify-center">
+                <div className="flex justify-center">
+                    <Accordion className="flex max-w-4/5 justify-center">
                         <FieldSet className="border-none p-o">
                             <FieldGroup>
                                 <AccordionItem  >
-                                    <AccordionTrigger className="text-center flex justify-center items-center">Venue Overview</AccordionTrigger>
-                                    <AccordionContent className="">
-                                        <Field>
+                                    <AccordionTrigger className="text-center flex justify-center items-center"><Building2 /><h2>Venue Overview</h2></AccordionTrigger>
+                                    <AccordionContent className="flex flex-col gap-5">
+                                        <Field className="">
                                             <FieldTitle>Client Name</FieldTitle>
                                             <Input value={clientName} onInput={(e) => setClientName(e.target.value)} />
 
@@ -145,7 +148,7 @@ function App() {
                                                 <Input value={address2} onInput={(e) => setAddress2(e.target.value)} />
 
                                             </Field>
-                                            <div className="flex-col flex">
+                                            <div className="flex-col flex gap-3">
                                                 <div className="flex-row flex gap-5">
 
                                                     <Field>
@@ -184,7 +187,7 @@ function App() {
                             </FieldGroup>
                             <FieldGroup>
                                 <AccordionItem >
-                                    <AccordionTrigger>Numerics</AccordionTrigger>
+                                    <AccordionTrigger><Hash /><h2>Numerics</h2></AccordionTrigger>
                                     <AccordionContent>
                                         <FieldGroup className="flex-row flex justify-center px-4 gap-[35%]">
                                             <div>
@@ -212,8 +215,8 @@ function App() {
 
                             <FieldGroup>
                                 <AccordionItem >
-                                    <AccordionTrigger> Notes</AccordionTrigger>
-                                    <AccordionContent>
+                                    <AccordionTrigger><NotebookTabs/> <h2>Notes</h2></AccordionTrigger>
+                                    <AccordionContent className= "flex flex-col gap-5">
 
                                         <Field>
                                             <FieldTitle>Room Dimensions</FieldTitle>

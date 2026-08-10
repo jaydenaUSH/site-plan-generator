@@ -3,7 +3,18 @@ import { useParams, Link } from 'react-router-dom'
 import { useState, useEffect } from 'react'
 import { Card, CardHeader, CardContent, CardFooter, CardDescription } from './components/ui/card'
 import { Separator } from './components/ui/separator'
-import { MapPin, TriangleAlert } from 'lucide-react'
+import {
+    MapPin,
+    FileText,
+    ArrowUpRight,
+    LayoutGrid,
+    Truck,
+    Users,
+    TriangleAlert,
+    ListChecks,
+    CalendarDays,
+    Circle
+ } from 'lucide-react'
 import { Badge } from "./components/ui/badge"
 import { Button } from './components/ui/button'
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './components/ui/accordion'
@@ -25,6 +36,17 @@ function Request() {
     const [req, setReq] = useState()
     const [draftEditID, setDraftEditID] = useState<number>(0)
     const [editNotes, setEditNotes] = useState<string>()
+
+    const textToList = (text: string) => {
+        //If text is a numbered list 
+        let bullets
+        if (text.includes("2)")) {
+            bullets = text.split(/\d\)/)
+            return bullets
+        }
+        bullets = text.split("-")
+        return bullets
+    }
 
 
     //Get Drafts related to this ID
@@ -105,11 +127,11 @@ function Request() {
             <aside className="max-w-[15%] left-0 sticky top-0 h-screen">
                 <Sidebar />
             </aside>
-            {req && (<main className="flex-col flex-1  justify-center px-5">
-                <h1>{req.VenueName}</h1>
-                <div>
+            {req && (<main className=" flex-1  justify-center px-5 max-w-[85%] ">
+                <h1 className="text-accent!">{req.VenueName}</h1>
+                <div className= "w-3/4  flex flex-col justify-center mx-auto gap-5">
                     <h2>Initial Request</h2>
-                    <Card>
+                    <Card className=" flex min-w-3/4">
                         <CardHeader className='flex justify-between pb-5'>
                             <div className='flex'>
                                 <MapPin />
@@ -143,7 +165,7 @@ function Request() {
                                     <h2> Loading Notes</h2>
                                     <p>{req.LoadingNotes}</p></div>
                                 <div>
-                                    <h2> Bluprint</h2>
+                                    <h2> Blueprint</h2>
                                     <Link to={`/requests/${req.Id}/image/og`}>
                                         <p className='text-blue-600! underline decoration-blue-600!'>Room Blueprint Image</p>
                                     </Link>
@@ -167,11 +189,34 @@ function Request() {
                                     <div key={draft.Id} >
                                         <AccordionItem>
                                             <AccordionTrigger>Draft # {drafts.length - i}</AccordionTrigger>
-                                            <AccordionContent>Checklist : {draft.PMReviewChecklist}</AccordionContent>
-                                            <AccordionContent>Layout : {draft.RecommendedLayout}</AccordionContent>
-                                            <AccordionContent>Risks : {draft.Risks}</AccordionContent>
-                                            <AccordionContent>SupplyFlow : {draft.SupplyFlow}</AccordionContent>
-                                            <AccordionContent>VolunteerFlow : {draft.VolunteerFlow}</AccordionContent>
+                                            <AccordionContent>
+                                                <Accordion className="w-full p-0!">
+                                                    <AccordionItem>
+
+                                                        <AccordionTrigger className="w-full" ><ListChecks />Checklist</AccordionTrigger>
+                                                        <AccordionContent className="flex flex-col gap-3">{textToList(draft.PMReviewChecklist).map((bullet) => (
+                                                            <p>{bullet}</p>
+                                                        )) }</AccordionContent>
+                                                    </AccordionItem>
+
+                                                    <AccordionItem>
+                                                        <AccordionTrigger><LayoutGrid />Layout</AccordionTrigger>
+                                                        <AccordionContent className="flex flex-col gap-3">{textToList(draft.RecommendedLayout).map((bullet) => (
+                                                            <p>{bullet }</p>
+                                                        ))}</AccordionContent>
+                                                    </AccordionItem>
+
+                                                    <AccordionItem>
+                                                        <AccordionTrigger><TriangleAlert />Risks</AccordionTrigger>
+                                                        <AccordionContent className="flex flex-col gap-3">{textToList(draft.Risks).map((bullet) => (
+                                                            <p>{bullet }</p>
+                                                        ))}</AccordionContent>
+                                                    </AccordionItem>
+
+
+                                                </Accordion></AccordionContent>
+                                            
+                                           
                                             <AccordionContent className="flex justify-between mx-[25%]">
                                                 <Link to={`/requests/${draft.Id}/image`}><p className='text-blue-600! underline decoration-blue-600!'>Show Blueprint Image</p></Link>
                                                 <Button>Finalize Draft</Button>
@@ -192,12 +237,14 @@ function Request() {
                             <Button onClick={() => { generateInitialDraft() }}>Generate Draft</Button>
                         </>
                     )}
-                    <h2>Edit Drafts</h2>
-                    <Card className='flex  items-center'>
+                    {drafts.length > 0 && ( 
+                        <>
+                        <h2>Edit Drafts</h2>
+                    <Card className='flex  items-center mb-5'>
                         <CardDescription>By default the last created draft will be the one edited unless otherwise specified.</CardDescription>
                         <Field className="flex items-center justify-center">
                             <FieldTitle className='flex justify-center' >Select Draft</FieldTitle>
-                            <Input className='w-10!' value={draftEditID} onInput={(e) => { setDraftEditID(drafts[e.target.value].Id) }} />
+                            <Input className='w-10!' value={drafts.length} onInput={(e) => { setDraftEditID(drafts[Number(e.target.value)-1].Id) }} />
                         </Field>
                         <Field className="flex items-center justify-center">
                             <FieldTitle className='flex justify-center'>Edit Notes</FieldTitle>
@@ -210,7 +257,7 @@ function Request() {
                             }}>Submit Edits</Button>
                         </CardFooter>
 
-                    </Card>
+                            </Card></>)}
                 </div>
             </main>)}
         </div>)

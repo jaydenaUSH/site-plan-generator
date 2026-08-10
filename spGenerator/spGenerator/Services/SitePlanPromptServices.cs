@@ -170,14 +170,12 @@ namespace spGenerator
                     ""properties"": {
                         ""SiteOverview"":      { ""type"": ""string"" },
                         ""RecommendedLayout"": { ""type"": ""string"" },
-                        ""VolunteerFlow"":     { ""type"": ""string"" },
-                        ""SupplyFlow"":        { ""type"": ""string"" },
                         ""Timeline"":          { ""type"": ""string"" },
                         ""Risks"":             { ""type"": ""string"" },
                         ""PMReviewChecklist"": { ""type"": ""string"" },
                         ""ImageInstruction"" : {""type"":""string""}
                 },
-                ""required"": [""SiteOverview"",""RecommendedLayout"",""VolunteerFlow"",""SupplyFlow"",""Timeline"",""Risks"",""PMReviewChecklist"", ""ImageInstruction""],
+                ""required"": [""SiteOverview"",""RecommendedLayout"",""Timeline"",""Risks"",""PMReviewChecklist"", ""ImageInstruction""],
                 ""additionalProperties"": false
             }"),
             jsonSchemaIsStrict: true)

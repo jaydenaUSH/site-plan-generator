@@ -242,8 +242,9 @@ function Request() {
                         </>) : (
                         <>
                             <h2>Press here to generate an initial draft</h2>
-                                <Button onClick={() => {
+                                <Button onClick={async() => {
                                     generateInitialDraft()
+                                    await getDrafts()
                                     setLoadingDraft(true)
                                 }}>{!loadingDraft ? (<p>Generate Draft</p>):(<Spinner/>)}</Button>
                         </>
@@ -255,15 +256,16 @@ function Request() {
                         <CardDescription>By default the last created draft will be the one edited unless otherwise specified.</CardDescription>
                         <Field className="flex items-center justify-center">
                             <FieldTitle className='flex justify-center' >Select Draft</FieldTitle>
-                            <Input className='w-10!' value={drafts.length} onInput={(e) => { setDraftEditID(drafts[Number(e.target.value)-1].Id) }} />
+                                    <Input className='w-10!' defaultValue={drafts.length} onInput={(e) => { setDraftEditID(drafts[drafts.length - Number(e.target.value)]?.Id ?? draftEditID) }} />
                         </Field>
                         <Field className="flex items-center justify-center">
                             <FieldTitle className='flex justify-center'>Edit Notes</FieldTitle>
                             <Textarea className='w-5/6!' placeholder="Enter the edits you want to make" value={editNotes} onInput={(e) => { setEditNotes(e.target.value) }} />
                         </Field>
                         <CardFooter>
-                            <Button onClick={() => {
+                            <Button onClick={async() => {
                                 editDraft()
+                                await getDrafts()
                                 setLoadingEdit(true)
                                 console.log(draftEditID)
                                     }}>{!loadingEdit ? (<p>Submit Edit </p>) : (<Spinner />)}</Button>

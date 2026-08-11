@@ -22,7 +22,6 @@ namespace spGenerator
         public async Task<dynamic> createReq(SitePlanRequest req)
         {
             req.CreatedAtUtc = DateTime.UtcNow;
-            req.RoomBlueprintFilePath = req.RoomBlueprintFilePath + Guid.NewGuid().ToString("N");
             _db.SitePlanRequests.Add(req);
             try
             {
@@ -46,7 +45,8 @@ namespace spGenerator
         }
         public async Task<dynamic> uploadFile(HttpPostedFile file)
         {
-            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints", "ogInput", Path.GetFileName(file.FileName));
+            string fileName = Path.GetFileNameWithoutExtension(file.FileName) + Guid.NewGuid().ToString("N") + Path.GetExtension(file.FileName);
+            var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints", "ogInput", fileName);
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 await file.InputStream.CopyToAsync(stream);

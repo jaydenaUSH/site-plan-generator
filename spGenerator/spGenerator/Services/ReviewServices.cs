@@ -151,10 +151,8 @@ namespace spGenerator
             var imageInstructions = (string)JObject.Parse(txt)["ImageInstruction"];
 
             //Use result in image edit
-            string editPrompt = "I have a blueprint already drafted using the following instructions that you should also adhere to" + imageInstructions + " . I want to make the following edits to (please be specific about changing what I ask and not other things unless associated " + edits +
-                                ". The output image should have dimensions that are proportionally scaled of the venue's room dimensions listed here:" + reqRow.RoomDimensions + ". Things from the draft should carry over like Volunteer Flow (path fow volunteers to enter) and Supply Flow should be labeled with arrows"+
-                                "One of the most important things above eevrything else is the image gets a base empty blueprint, and we're adding things to that blueprint or moving  added things around."+
-                                "Nothing about the blueprint should be changed or removed. The returned image should have th eoriginal blueprint";
+            string editPrompt = _services.GeneratePrompt(null, row, true, edits, imageInstructions) + " The following edits are requested, change only these and leave everything else exactly as it is, preserving the integreity of the blueprint items : " + edits;
+
             GeneratedImage image;
             //IF PDF CONVERT TO REGULAR IMAGE
             if (row.SiteOverview != null && row.SiteOverview != "")
@@ -190,11 +188,11 @@ namespace spGenerator
                         pngBytes = File.ReadAllBytes(fullPath);
                     }
                 }
-
+                string editPrompt
                 using (MemoryStream stream = new MemoryStream(pngBytes))
                 {
 
-                    image = await imageClient.GenerateImageEditAsync(prompt: editPrompt, image: stream, imageFilename: row.SiteOverview);
+                    image = await imageClient.GenerateImageEditAsync(prompt: editPrompt, image: stream, imageFilename: row.SiteOverview, options: new ImageEditOptions { Quality = GeneratedImageQuality.HighQuality, InputFidelity = ImageInputFidelity.High });
                 }
                 string directory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "blueprints");
 

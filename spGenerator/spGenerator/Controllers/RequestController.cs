@@ -84,7 +84,10 @@ namespace spGenerator.Controllers
             var file = HttpContext.Current.Request.Files["file"];
 
             if (file == null) return BadRequest("No file attatched");
-            var res = await _services.uploadFile(file);
+            if(Path.GetExtension(file.FileName)!= "pdf"&& Path.GetExtension(file.FileName) != "png"&& Path.GetExtension(file.FileName)!= "jpg" && Path.GetExtension(file.FileName) != "jpeg"){
+                return BadRequest("Invalid file type");
+            }
+                var res = await _services.uploadFile(file);
             return Ok(res);
         }
     }

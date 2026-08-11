@@ -22,6 +22,7 @@ namespace spGenerator
         public async Task<dynamic> createReq(SitePlanRequest req)
         {
             req.CreatedAtUtc = DateTime.UtcNow;
+            req.RoomBlueprintFilePath = req.RoomBlueprintFilePath + Guid.NewGuid().ToString("N");
             _db.SitePlanRequests.Add(req);
             try
             {
@@ -30,7 +31,7 @@ namespace spGenerator
             }
             catch (Exception ex)
             {
-                return ex;
+                throw ex;
             }
             return req;
         }

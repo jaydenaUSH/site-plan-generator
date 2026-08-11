@@ -21,6 +21,8 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from './
 import { Textarea } from './components/ui/textarea'
 import { Input } from './components/ui/input'
 import { Field, FieldSet, FieldGroup, FieldTitle } from './components/ui/field'
+import { Spinner } from './components/ui/spinner'
+
 
 
 
@@ -36,6 +38,9 @@ function Request() {
     const [req, setReq] = useState()
     const [draftEditID, setDraftEditID] = useState<number>(0)
     const [editNotes, setEditNotes] = useState<string>()
+    const [loadingDraft, setLoadingDraft] = useState(false)
+    const [loadingEdit, setLoadingEdit] = useState(false)
+
 
     const textToList = (text: string) => {
         //If text is a numbered list 
@@ -89,6 +94,7 @@ function Request() {
         else {
             console.log(data)
         }
+        setLoadingDraft(false)
 
     }
 
@@ -101,6 +107,8 @@ function Request() {
             console.log(data)
         }
         else { console.log(data) }
+        setLoadingEdit(false)
+
     }
 
     const finalizeDraft = async (draftID) => {
@@ -218,7 +226,7 @@ function Request() {
                                             
                                            
                                             <AccordionContent className="flex justify-between mx-[25%]">
-                                                <Link to={`/requests/${draft.Id}/image`}><p className='text-blue-600! underline decoration-blue-600!'>Show Blueprint Image</p></Link>
+                                                <Link to={`/requests/${draft.Id}/image`}><p className='text-blue-600! underline decoration-blue-600!'>Show Draft Image</p></Link>
                                                 <Button>Finalize Draft</Button>
                                             </AccordionContent>
 
@@ -234,7 +242,10 @@ function Request() {
                         </>) : (
                         <>
                             <h2>Press here to generate an initial draft</h2>
-                            <Button onClick={() => { generateInitialDraft() }}>Generate Draft</Button>
+                                <Button onClick={() => {
+                                    generateInitialDraft()
+                                    setLoadingDraft(true)
+                                }}>{!loadingDraft ? (<p>Generate Draft</p>):(<Spinner/>)}</Button>
                         </>
                     )}
                     {drafts.length > 0 && ( 
@@ -253,8 +264,9 @@ function Request() {
                         <CardFooter>
                             <Button onClick={() => {
                                 editDraft()
+                                setLoadingEdit(true)
                                 console.log(draftEditID)
-                            }}>Submit Edits</Button>
+                                    }}>{!loadingEdit ? (<p>Submit Edit </p>) : (<Spinner />)}</Button>
                         </CardFooter>
 
                             </Card></>)}

@@ -2,6 +2,8 @@ import Sidebar from './sidebar'
 import { useEffect, useState } from 'react'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "./components/ui/card"
 import { useNavigate } from 'react-router-dom'
+import { Skeleton } from "./components/ui/skeleton"
+
 
 function Past() {
     const navigator = useNavigate()
@@ -30,26 +32,47 @@ function Past() {
             </aside>
             <main className="flex-col flex-1  justify-center px-5">
                 <h1 className='text-accent!'>View All Venues</h1>
-                {drafts.length>0 && (
+                {drafts.length>0 ? (
                     <div className= 'grid grid-cols-4 gap-5 '>
                         {drafts.map((draft) => (
                             <div key={draft.Id} >
                                 <Card className='cursor-pointer' onClick={() => {
                                     navigator(`/requests/${draft.Id}`)
                                 }}>
-                                <div className="w-full p-0! h-[1vh] bg-primary -mt-6!"></div>
+                                    <div className="w-full p-0! h-[1vh] bg-primary -mt-6!"></div>
                                     <CardHeader><CardTitle className="font-semibold">{draft.ClientName || "Client Name"}</CardTitle>
-                                    <CardDescription>{draft.Deadline.slice(0,10)}</CardDescription>
+                                        <CardDescription>{draft.Deadline.slice(0, 10)}</CardDescription>
                                     </CardHeader>
                                     <CardContent>
                                         <p className="font-medium">{draft.VenueName}</p>
-                                       <p> {draft.VenueAddress}</p></CardContent>
+                                        <p> {draft.VenueAddress}</p></CardContent>
 
                                 </Card>
                             </div>
+
                         ))}
-                    </div>
-                ) }
+                    </div>)
+
+                 : (
+                        <div className='grid grid-cols-4 gap-5 '>
+                            {Array.from({ length: 4 }).map(() => (
+                                <Card  >
+                                    <div className="w-full p-0! h-[1vh] bg-primary -mt-6!"></div>
+                                    <CardHeader className="flex flex-col w-full items-center">
+                                        <Skeleton className="w-2/3 h-2" />
+                                        <Skeleton className="w-2/3 h-2" />
+                                    </CardHeader>
+                                    <CardContent className='flex flex-col w-full items-center'>
+                                        <Skeleton className="w-2/3 h-15" />
+                                    </CardContent>
+
+                                </Card>
+                            ) )}
+                            
+                        </div>
+                            )
+                        }
+
             </main>
         </div>
     )

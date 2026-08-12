@@ -299,6 +299,8 @@ Roughly in order of how much they will hurt.
 
 ### Quietly wrong
 
+**Requests don't show when complete** When the user enters the information to make a new request and presses the button, there is no communication to the user whether the request worked or not. Either show the user it worked, or take them to request page
+
 **Two AI fields are thrown away.** `SitePlanDraft` has no `VolunteerFlow`/`SupplyFlow` columns while the generation schema requires them. You pay for them every call and lose them. Fix is an `ALTER TABLE SitePlanDraft ADD VolunteerFlow nvarchar(max) NULL, SupplyFlow nvarchar(max) NULL;`, an EDMX refresh, and adding both to the edit schema in `ReviewServices.cs`.
 
 **Edits lose the drawing rules and run at default fidelity.** `editPrompt` bypasses `GeneratePrompt`, and `GenerateImageEditAsync` in `ReviewServices.cs` passes no `ImageEditOptions` — so edits render at 1024×1024 square with default input fidelity while the initial generation uses `W1024xH1536` with `InputFidelity.High`. This is the main reason edited drafts lose the building's walls.
